@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const closeButtons = document.querySelectorAll(".close-button");
     const menuContainer = document.querySelector(".menu-container");
     let isMenuBlurred = false;
+    const localPlay = document.getElementById("local-play");
 
     instructionButton.addEventListener("click", function() {
     instructionOverlay.classList.add("show");
@@ -23,6 +24,10 @@ document.addEventListener("DOMContentLoaded", function() {
         playOverlay.classList.remove("show");
         unblurMenu();
     });
+    });
+
+    localPlay.addEventListener("click", function() {
+        window.location.href = "index.html";
     });
 
     function blurMenu() {
