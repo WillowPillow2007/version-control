@@ -739,6 +739,11 @@ function showWarning(...messages) {
     }, 2000);
 }
 
+document.getElementById('back-to-menu').addEventListener('click', function() {
+    history.pushState(null, null, '/menu.html');
+    window.location.reload();
+});
+
 // Call initGaps to activate wall functionality
 window.onload = () => {
     initBoard();

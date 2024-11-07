@@ -2,22 +2,22 @@
     "name": "Quoridor",
     "short_name": "Quoridor",
     "description": "Play the Quoridor game online",
-    "start_url": "/public/menu.html",
+    "start_url": "/menu.html",
     "display": "standalone",
     "background_color": "#222",
     "theme_color": "#00bfff",
     "orientation": "portrait",
     "icons": [
     {
-        "src": "./assets/icon-small.png",
+        "src": "/assets/icon-small.png",
         "sizes": "192x192",
         "type": "image/png"
     },
     {
-        "src": "./assets/icon-medium.png",
+        "src": "/assets/icon-medium.png",
         "sizes": "512x512",
         "type": "image/png"
     }
-    ]
+    ],
+    "scope": "/"
 }
-
