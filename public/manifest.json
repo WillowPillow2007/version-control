@@ -2,7 +2,7 @@
     "name": "Quoridor",
     "short_name": "Quoridor",
     "description": "Play the Quoridor game online",
-    "start_url": "/public/index.html",
+    "start_url": "/public/menu.html",
     "display": "standalone",
     "background_color": "#222",
     "theme_color": "#00bfff",

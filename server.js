@@ -10,6 +10,12 @@ const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, 'public');
 app.use(express.static(publicDir));
 
+// Redirect to menu.html on the root URL
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'menu.html'));
+});
+
+// Catch-all route for other paths
 app.get('*', (req, res) => {
   res.sendFile(path.join(publicDir, 'menu.html'));
 });
