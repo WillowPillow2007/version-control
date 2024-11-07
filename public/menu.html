@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Menu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="src/menu.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/icon-small.png" type="image/png" sizes="192x192">
+    <title>Quoridor Game</title>
 </head>
-<body>
     <div class="menu-container">
         <h1 class="game-title">Quoridor</h1>
         <div class="button-container">
@@ -12,10 +15,37 @@
             <button class="instruction-button">Instruction</button>
         </div>
     </div>
-    <div class="instruction-overlay" id="instruction-overlay">
-        <h2>Game Instructions</h2>
-        <p>Here are the game instructions.</p>
+    <div class="play-overlay" id="play-overlay">
         <button class="close-button">Close</button>
+        <div class="play-text">
+            <h2>Pick a gamemode</h2>
+            <p class = "desc">Choose your play mode:</p>
+            <div class="play-options">
+                <button id="local-play">Local Play</button>
+                <button id="online-play">Online Play</button>
+            </div>
+        </div>
+    </div>
+    <div class="instruction-overlay" id="instruction-overlay">
+        <button class="close-button">Close</button>
+        <div class="instruction-text">
+            <h2>Quoridor: All you need to know</h2>
+            <p class = "desc">The object of the game is to advance your pawn to the opposite edge of the board. 
+                On your turn, you may either move your pawn or place a wall. 
+                You may hinder your opponent with wall placement, but not completely block him off. 
+                Meanwhile, he is trying to do the same to you. The first pawn to reach the opposite side wins.</p>
+            <p class = "desc">To move the pawn, simply click on the cell you want to move to that is highlighted.
+                To place a wall, click on the gap between the cells that you want to place it.
+            </p>
+            <p class="desc">More about Quoridor Game Rules can be found here: <a href="https://www.ultraboardgames.com/quoridor/game-rules.php" target="_blank">Quoridor Game Rules</a></p>
+        </div>
+        <div class="demo">
+            <img src="assets/demo-image-1.png" alt="Demo Image 1">
+            <figure>
+                <video src="assets/demo-vid.webm" controls title="Wall Placement"></video>
+                <figcaption>Wall Placing Demonstration</figcaption>
+            </figure>
+        </div>
     </div>
     <script src="src/menu.js"></script>
 </body>

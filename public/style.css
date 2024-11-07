@@ -23,7 +23,8 @@ h1 {
 .game-container {
   display: flex; /* Use flexbox for the container */
   align-items: flex-start; /* Align items at the start */
-  height: calc(100vh - 100px); /* Adjust based on your heading size and button container */
+  height: 65vh; /* Adjust based on your heading size and button container */
+  margin-top: -20px; /* Move up by 20px */
 }
 
 .board {
