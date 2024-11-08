@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="full-screen-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="src/menu.css">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="assets/icon-small.png" type="image/png" sizes="192x192">
@@ -19,10 +21,14 @@
         <button class="close-button">Close</button>
         <div class="play-text">
             <h2>Pick a gamemode</h2>
-            <p class = "desc">Choose your play mode:</p>
+            <p class="desc">Choose your play mode:</p>
             <div class="play-options">
                 <button id="local-play">Local Play</button>
                 <button id="online-play">Online Play</button>
+                <div class="online-branch">
+                    <button id="create-room">Create Room</button>
+                    <button id="join-room">Join Room</button>
+                </div>
             </div>
         </div>
     </div>
@@ -47,6 +53,17 @@
             </figure>
         </div>
     </div>
-    <script src="src/menu.js"></script>
+    <div class="create-room-overlay" id="create-room-overlay">
+        <h2>Game Code</h2>
+        <p>Your game code is:</p>
+        <div class="game-code">
+            <span id="game-code-text"></span>
+            <button id="copy-code-button">Copy Code</button>
+        </div>
+        <p>Please give this to the person you are playing with. The game will start automatically once your opponent joins.</p>
+        <p>Do not leave or refresh this page. The code will expire if you do so.</p>
+        <button id="close-overlay-button">Close</button>
+    </div>
+    <script type="module" src="src/menu.js"></script>
 </body>
 </html>

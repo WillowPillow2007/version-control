@@ -1,3 +1,4 @@
+// import { v4 as uuidv4 } from 'uuid';
 document.addEventListener("DOMContentLoaded", function () {
     // Elements
     const instructionButton = document.querySelector(".instruction-button");
@@ -7,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const closeButtons = document.querySelectorAll(".close-button");
     const menuContainer = document.querySelector(".menu-container");
     const localPlay = document.getElementById("local-play");
+    const createRoomOverlay = document.getElementById("create-room-overlay");
 
     let isMenuBlurred = false;
 
@@ -66,4 +68,34 @@ document.addEventListener("DOMContentLoaded", function () {
             isMenuBlurred = false;
         }
     }
+
+    document.getElementById('online-play').addEventListener('click', function() {
+        document.querySelector('.online-branch').classList.toggle('show');
+    });
+
+    function generateCode() {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let code = '';
+        for (let i = 0; i < 5; i++) {
+          code += letters.charAt(Math.floor(Math.random() * letters.length));
+        }
+        return code;
+    }
+
+    document.getElementById('create-room').addEventListener('click', () => {
+        const gameCode = generateCode(); // Generate a 5-letter code
+        document.getElementById('game-code-text').textContent = gameCode;
+        createRoomOverlay.classList.toggle('show');
+        // Broadcast the game code to the opponent
+        socket.emit('game-code', gameCode);
+    });
+    
+    document.getElementById('copy-code-button').addEventListener('click', () => {
+        const gameCode = document.getElementById('game-code-text').textContent;
+        navigator.clipboard.writeText(gameCode);
+    });
+    
+    document.getElementById('close-overlay-button').addEventListener('click', () => {
+        document.getElementById('create-room-overlay').style.display = 'none';
+    });
 });

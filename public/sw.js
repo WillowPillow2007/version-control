@@ -39,7 +39,7 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Activate event: clean up old caches
+// Activate event: clean up old caches and clear current cache
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -49,7 +49,18 @@ self.addEventListener('activate', (event) => {
                         return caches.delete(cache);  // Clean up old caches
                     }
                 })
-            );
+            ).then(() => {
+                // Clear current cache
+                return caches.open(CACHE_NAME).then((cache) => {
+                    return cache.keys().then((keys) => {
+                        return Promise.all(
+                            keys.map((key) => {
+                                return cache.delete(key);
+                            })
+                        );
+                    });
+                });
+            });
         })
     );
 });

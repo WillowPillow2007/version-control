@@ -37,9 +37,12 @@ function initBoard() {
     setupResetButton();
 }
 
-//Handle player cell click
+// Flag to track if a move is being processed
+let isProcessingMove = false;
+
+// Handle player cell click
 function handleCellClick(event) {
-    if (gameOver) return; // Prevent moves if the game is over
+    if (gameOver || isProcessingMove) return; // Prevent moves if the game is over or if a move is in progress
     
     const cellId = event.target.id;
     const [_, x, y] = cellId.split('-');
@@ -47,12 +50,23 @@ function handleCellClick(event) {
     const newY = parseInt(y);
 
     const validMoves = getValidMoves(currentPlayer);
+    
+    // Check if the move is valid
     if (validMoves.some(move => move.x === newX && move.y === newY)) {
+        // Set flag to indicate the move is being processed
+        isProcessingMove = true;
+        
         movePlayer(currentPlayer, newX, newY);
         currentPlayer = currentPlayer === player1 ? player2 : player1;
 
+        // Highlight the valid moves and the current player
         highlightValidMoves();
         highlightCurrentPlayer();
+        
+        // Reset flag after a short delay (ensure move is fully processed)
+        setTimeout(() => {
+            isProcessingMove = false;
+        }, 300); // You can adjust the timeout (300 ms) to suit your game's speed
     } else {
         showWarning("Invalid move. Click a valid cell.");
     }
@@ -89,6 +103,7 @@ function isOpponentInWay(player, newX, newY) {
     const opponent = player === player1 ? player2 : player1;
     return opponent.position.x === newX && opponent.position.y === newY;
 }
+
 function canJumpOver(player, newX, newY) {
     const deltaX = newX - player.position.x; // Direction to opponent
     const deltaY = newY - player.position.y;
@@ -740,7 +755,7 @@ function showWarning(...messages) {
 }
 
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    history.pushState(null, null, '/menu.html');
+    history.pushState(null, null, 'menu.html');
     window.location.reload();
 });
 
