@@ -755,8 +755,7 @@ function showWarning(...messages) {
 }
 
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    history.pushState(null, null, 'menu.html');
-    window.location.reload();
+    location.replace('menu.html'); // Replaces game.html in the history stack
 });
 
 // Call initGaps to activate wall functionality

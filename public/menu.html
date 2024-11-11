@@ -62,7 +62,17 @@
         </div>
         <p>Please give this to the person you are playing with. The game will start automatically once your opponent joins.</p>
         <p>Do not leave or refresh this page. The code will expire if you do so.</p>
-        <button id="close-overlay-button">Close</button>
+        <button class="close-button" id="close-room">Close</button>
+    </div>
+    <div class="join-room-overlay" id="join-room-overlay">
+        <h2>Game Code</h2>
+        <p>Please enter your game code</p>
+        <div class="game-code">
+            <input id="join-room-code" type="text" placeholder="xxxxx" maxlength="5" inputmode="verbatim">
+            <button id="join-room-button">Join</button>
+        </div>
+        <p>Don't know what this is? Ask the person hosting the game. They'll have it.</p>
+        <button class="close-button">Close</button>
     </div>
     <script type="module" src="src/menu.js"></script>
 </body>

@@ -268,7 +268,7 @@ figure {
     display: none;
 }
 
-.create-room-overlay.show {
+.create-room-overlay.show, .join-room-overlay.show {
     display: flex;
     background-color: rgb(255, 255, 255); /* Add a dark background color to the overlay */
 }
@@ -296,21 +296,6 @@ figure {
     font-size: 40px;
 }
 
-#close-overlay-button {
-    width: 200px;
-    height: 50px;
-    font-size: 24px;
-    background-color: rgb(10, 200, 10);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    margin-top: auto;
-    position: absolute;
-    top: 20px;
-    right: 20px; 
-}
-
 .create-room-overlay p {
     font-size: 30px;
     margin: 20px 0px;
@@ -320,4 +305,57 @@ figure {
 .create-room-overlay h2 {
     font-size: 60px;
     margin: 0;
+}
+
+.join-room-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+}
+
+.join-room-overlay h2 {
+    font-size: 60px;
+    margin: 0;
+}
+
+.join-room-overlay p {
+    font-size: 30px;
+    margin: 20px 0px;
+    color: black;
+}
+
+#join-room-code {
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 50px;
+    font-weight: bold;
+    margin-right: 10px;
+    background-color: #2c3e50;
+    width: 250px;
+    text-align: center;
+}
+
+#join-room-code::placeholder {
+    color: gray;
+}
+
+#join-room-button {
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 40px;
+}
+
+#join-room-button:hover {
+    background-color: blue;
 }
