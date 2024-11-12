@@ -1,0 +1,255 @@
+body {
+  display: flex;
+  flex-direction: column; /* Align items in a column */
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #000;
+  overflow: hidden; /* Prevent scrollbars */
+}
+
+h1 {
+  font-size: 60px; /* Font size for the heading */
+  color: #0ff; /* Bright cyan color */
+  text-shadow: 0 0 15px #0ff, 0 0 30px #0ff; /* Increased glow */
+  margin: 20px 0; /* Margin above and below the heading */
+  text-align: left; /* Align the heading to the left */
+  width: 100%; /* Full width to push it to the left */
+  padding-left: 20px; /* Add padding to the left */
+}
+
+.game-container {
+  display: flex; /* Use flexbox for the container */
+  align-items: flex-start; /* Align items at the start */
+  height: 65vh; /* Adjust based on your heading size and button container */
+  margin-top: -20px; /* Move up by 20px */
+  
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  margin-right: 20px; /* Space between the board and player indicators */
+  background-color: #00bfff; /* Cyan background for the board */
+}
+
+.row {
+  display: flex;
+}
+
+.cell {
+  width: 60px;
+  height: 60px;
+  background-color: #222; /* Darker background for cells */
+  border: 2px solid #00bfff; /* Neon blue border */
+  box-sizing: border-box; /* Ensures border is included in total width/height */
+  position: relative;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.cell:hover {
+  background-color: rgba(0, 255, 255, 0.5); /* Slightly more opaque hover */
+  box-shadow: 0 0 20px #00bfff, 0 0 30px #00bfff; /* Stronger glow on hover */
+}
+
+
+.gap {
+  background-color: #555; /* Darker gap color */
+}
+
+.gap.vertical {
+  width: 8px;
+  height: 60px; /* Matches the effective height of each cell */
+}
+
+.gap.horizontal {
+  width: 60px; /* Matches the effective width of each cell */
+  height: 8px;
+}
+
+.gap.cross {
+  width: 8px;
+  height: 8px;
+}
+
+.gap.wall-placed {
+  background-color: #ff0000; /* Red color for the wall */
+}
+
+.player-marker {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  transition: transform 0.3s ease; /* Smooth animation for transform changes */
+}
+
+#marker1 {
+  box-shadow: 0 0 15px #ff8cff, 0 0 30px #ff8cff; /* Brighter neon pink glow effect for Player 1 */
+}
+
+#marker2 {
+  box-shadow: 0 0 15px #66ff66, 0 0 30px #66ff66; /* Brighter neon green glow effect for Player 2 */
+}
+
+.highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; /* Full cell size */
+  height: 100%; /* Full cell size */
+  background-color: rgba(0, 0, 255, 0.3); /* Semi-transparent blue */
+  border-radius: 50%; /* Circular shape */
+  filter: blur(8px); /* Blur effect */
+  pointer-events: none; /* Ensure it doesn't block clicks */
+  z-index: 1; /* Ensure it's on top of the cell */
+}
+
+.shadowy {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow effect for the current player's cell */
+}
+
+.turn-indicator {
+  font-size: 40px; /* Adjust as needed */
+  margin-bottom: 10px; /* Space between indicators */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack items horizontally */
+  align-items: flex-start; /* Center indicators horizontally */
+}
+
+.indicator-row {
+  display: flex; /* Row for player indicator and wall count */
+  align-items: center; /* Center items vertically */
+}
+
+#player1-indicator {
+  margin-top: 20px;
+  margin-bottom: 30px;
+  margin-right: 10px;
+  color: #800080; /* Neon purple for Player 1 */
+  text-shadow: 0 0 10px rgba(255, 20, 145, 0.973); /* Pink glow effect */
+}
+
+#player1-indicator.active {
+  font-weight: bold;
+  color: #f0f; /* Bright neon pink when active */
+  text-shadow: 0 0 10px rgba(255, 20, 145, 0.973); /* Pink glow effect */
+}
+
+#player2-indicator {
+  color: green; /* Neon purple for Player 2 */
+  margin-right: 10px;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7); /* Green glow effect */
+}
+
+#player2-indicator.active {
+  font-weight: bold;
+  color: #00ff00; /* Bright neon purple when active */
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7); /* Green glow effect */
+}
+
+#player1-wall-count.active {
+  font-weight: bold;
+  color: #f0f; /* Bright neon pink when active */
+  text-shadow: 0 0 10px rgba(255, 20, 147, 0.7); /* Pink glow effect */
+}
+
+#player2-wall-count.active {
+  font-weight: bold;
+  color: #00ff00; /* Bright neon purple when active */
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7); /* Green glow effect */
+}
+
+.wall-count {
+  font-size: 24px; /* Adjust size as needed */
+  font-weight: bold;
+  color: #0ff; /* Bright cyan color for visibility */
+  margin-left: 10px; /* Space between the player name and wall count */
+}
+
+/* Specific wall count colors */
+#player1-wall-count {
+  color: #800080; /* Neon purple for Player 1 wall count */
+  text-shadow: 0 0 10px rgba(255, 20, 147, 0.7); /* Pink glow effect */
+}
+
+#player2-wall-count {
+  color: green; /* Neon green for Player 2 wall count */
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7); /* Green glow effect */
+}
+
+.wall-preview {
+  background-color: #E23F44; /* or any other style you want to apply */
+}
+
+/* Button Container */
+.button-container {
+  display: flex; /* Center the button */
+  justify-content: center; /* Center button horizontally */
+  margin-top: 20px; /* Space above the button */
+}
+
+/* Reset Button Styles */
+#reset-button {
+  background-color: #ff00ff; /* Bright pink background */
+  color: white; /* White text */
+  padding: 10px 20px; /* Padding around the text */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 16px; /* Font size */
+  box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; /* Glow effect */
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Smooth transition */
+}
+
+/* Button Hover Effect */
+#reset-button:hover {
+  background-color: #ff80ff; /* Lighter pink on hover */
+  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff; /* Stronger glow on hover */
+  transform: scale(1.05); /* Scale up slightly on hover */
+}
+
+/* Button Active Effect */
+#reset-button:active {
+  transform: scale(0.95); /* Shrink on click */
+}
+
+.warning-box {
+  position: fixed; /* Fixed positioning to keep it at the original place */
+  top: 20px; /* Starting position */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, 0); /* Adjust for centering */
+  background-color: #ffcc00; /* Yellow background */
+  color: #000; /* Black text */
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* Ensure it appears on top of other content */
+  opacity: 1;
+  transition: opacity 0.5s ease, top 0.5s ease; /* Smooth fade and top transition */
+  font-size: 16px; /* Adjust font size as needed */
+}
+
+#back-to-menu {
+  width: 200px;
+  height: 50px;
+  font-size: 24px;
+  background-color: rgb(10, 200, 10);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: auto;
+  position: absolute;
+  top: 20px;
+  right: 20px; 
+}
+#back-to-menu:hover {
+  background-color: rgb(0, 150, 0);
+}

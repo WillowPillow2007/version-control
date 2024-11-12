@@ -1,4 +1,4 @@
-import Player from './src/Player.js';
+import Player from './js/Player.js';
 
 let gameOver = false; // Add this at the top
 const player1 = new Player("1", 8, 4, "#f0f");
@@ -696,7 +696,7 @@ function parseCellPosition(gap) {
 }
 
 function getClosestCells(event, gapType) {
-    const { offsetX, offsetY } = event;
+    const {offsetX, offsetY} = event;
     const [y, x] = parseCellPosition(event.target);
     let cell1 = null, cell2 = null;
 

@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.success) {
                     // Successfully joined, update game state
                     console.log('Joined the room successfully');
-                    window.location.href = 'game.html'; // Redirect to the game screen or perform any other action
+                    window.location.href = 'game-online.html'; // Redirect to the game screen or perform any other action
                 } else {
                     console.log('Failed to join room:', data.message);
                     alert(data.message); // Show an error message if game is not open or invalid code
