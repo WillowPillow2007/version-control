@@ -1,18 +1,194 @@
-import Player from './js/Player.js';
+import Player from './Player.js';
 
-let gameOver = false; // Add this at the top
-const player1 = new Player("1", 8, 4, "#f0f");
-const player2 = new Player("2", 0, 4, "#00ff00");
-let currentPlayer = player1; // Start with Player 1
-let currentWarningCount = 0; // Track the number of current warnings
-let currentlyShownGaps = []; // Track the gaps being preview
-let player1WallCount = 10; // Track walls placed by Player 1
-let player2WallCount = 10; // Track walls placed by Player 2
-const maxWalls = 10;
-const occupiedWalls = { //Set to store the wall position
-    horizontal: new Set(),
-    vertical: new Set()
-};
+const socket = io();
+let gameOver = false; 
+let player1;
+let player2;
+let currentPlayer;
+let currentWarningCount = 0;
+let currentlyShownGaps = [];
+let player1WallCount;
+let player2WallCount;
+let occupiedWalls;
+
+const currentGameId = new URLSearchParams(window.location.search).get('room');
+console.log('currentGameId:', currentGameId);
+
+socket.on('connect', () => {
+    console.log('Connected to the server!');
+});
+
+socket.on('disconnect', () => {
+    console.log('Disconnected from the server');
+});
+
+// Fetch the initial turn without switching it
+function fetchCurrentTurn() {
+    return new Promise((resolve, reject) => {
+        socket.emit('fetch-turn', { gameID: currentGameId });
+
+        // Listen for the server's response with the current turn
+        socket.once('turn-fetched', (data) => {
+            if (data.currentTurn === 'player_1') {
+                resolve(player1);
+            } else if (data.currentTurn === 'player_2') {
+                resolve(player2);
+            } else {
+                reject(new Error('Invalid player data received'));
+            }
+        });
+
+        socket.on('error', (err) => {
+            console.error('Error fetching current turn:', err);
+            reject(err);
+        });
+    });
+}
+
+// // Update turn function, called after a move
+// function updateTurn() {
+//     return new Promise((resolve, reject) => {
+//         socket.emit('update-turn', { gameID: currentGameId });
+
+//         // Listen for the server's response after updating the turn
+//         socket.once('turn-updated', (data) => {
+//             if (data.currentTurn === 'player1') {
+//                 resolve(player1);
+//             } else if (data.currentTurn === 'player2') {
+//                 resolve(player2);
+//             } else {
+//                 reject(new Error('Invalid player data received'));
+//             }
+//         });
+
+//         socket.on('error', (err) => {
+//             console.error('Error updating turn:', err);
+//             reject(err);
+//         });
+//     });
+// }
+
+socket.on('turn_disable', (data) => {
+    disableCellInteractions();
+    removeHighlightValidMoves();
+    if (data.current_turn === 'player_1') {
+        currentPlayer = player1;
+    } else if (data.current_turn === 'player_2') {
+        currentPlayer = player2;
+    }
+    highlightCurrentPlayer();
+});
+
+socket.on('turn_update', (data) => {
+    console.log(data.current_turn)
+    // Update the turn logic here
+    if (data.current_turn === 'player_1') {
+        currentPlayer = player1;
+    } else if (data.current_turn === 'player_2') {
+        currentPlayer = player2;
+    }
+    enableCellInteractions();
+    highlightValidMoves();
+    highlightCurrentPlayer();
+});
+
+function removeHighlightValidMoves() {
+    const allCells = document.querySelectorAll('.cell');
+    allCells.forEach(cell => {
+        const existingHighlight = cell.querySelector('.highlight');
+        if (existingHighlight) {
+            cell.removeChild(existingHighlight);
+        }
+        cell.classList.remove('shadowy');
+    });
+}
+
+function enableCellInteractions() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        cell.style.pointerEvents = 'auto';
+    });
+    const gaps= document.querySelectorAll('.gap');
+    gaps.forEach(gap => {
+        gap.style.pointerEvents = 'auto';
+    });
+}
+
+// Listen for game over event
+socket.on('game_over', (data) => {
+    // Log the message for debugging
+    console.log(data.message);
+
+    alert(data.message);
+});
+
+socket.on('opponent_move', (data) => {
+    try {
+        const { player_id, new_x, new_y } = data;
+
+        console.log(`Received opponent_move: ${player_id} moved to x = ${new_x}, y = ${new_y}`);
+
+        let player;
+        if (player_id === 'player_1') {
+            player = player1;
+        } else if (player_id === 'player_2') {
+            player = player2;
+        }
+
+        if (player) {
+            // Check win condition
+            const currentCell = document.getElementById(`cell-${player.position.x}-${player.position.y}`);
+            const newCell = document.getElementById(`cell-${new_x}-${new_y}`);
+
+            // Log to see if the cells are being correctly identified
+            console.log(`Current cell: cell-${player.position.x}-${player.position.y}`);
+            console.log(`New cell: cell-${new_x}-${new_y}`);
+
+            if (currentCell) {
+            currentCell.innerHTML = ''; // Clear the old cell
+            }
+
+            // Update the player position
+            player.position.x = new_x;
+            player.position.y = new_y;
+            console.log(player.position);
+            if (newCell) {
+                const playerNumber = currentPlayer.id.split('_')[1];
+                newCell.innerHTML = `<div class="player-marker" id="marker${playerNumber}" style="background-color:${player.color}; transform: translate(-50%, -50%);"></div>`;
+            }
+
+            // Check win condition
+            checkWinCondition(player);
+    }
+    } catch (error) {
+        console.error('Error handling opponent_move event:', error);
+    }
+});
+
+socket.on('redirect_to_menu', (data) => {
+    window.location.href = data.url;
+});
+
+socket.on('opponent_wall', (data) => {
+    console.log('Opponent placed a wall:', data);
+    const { player_id, newOccupiedWalls, wallCount } = data;
+    if (player_id === 'player_1') {
+        player1WallCount = wallCount;
+    } else if (player_id === 'player_2') {
+        player2WallCount = wallCount;
+    }
+    occupiedWalls = JSON.parse(newOccupiedWalls);
+
+    // Temporarily mark walls as occupied to check for path
+    Object.keys(occupiedWalls).forEach(gapType => {
+        occupiedWalls[gapType].forEach(gapId => {
+            const gap = document.querySelector(`#${gapId}`);
+            if (gap) {
+                gap.classList.add('wall-placed');
+            }
+        });
+    });
+});
 
 //Getting player start cell and setting up all other function
 function initBoard() {
@@ -34,14 +210,12 @@ function initBoard() {
 
     highlightValidMoves();
     highlightCurrentPlayer();
-    setupResetButton();
 }
 
 // Flag to track if a move is being processed
 let isProcessingMove = false;
 
-// Handle player cell click
-function handleCellClick(event) {
+async function handleCellClick(event) {
     if (gameOver || isProcessingMove) return; // Prevent moves if the game is over or if a move is in progress
     
     const cellId = event.target.id;
@@ -56,17 +230,21 @@ function handleCellClick(event) {
         // Set flag to indicate the move is being processed
         isProcessingMove = true;
         
+        // Move the player locally on the board
         movePlayer(currentPlayer, newX, newY);
-        currentPlayer = currentPlayer === player1 ? player2 : player1;
-
-        // Highlight the valid moves and the current player
-        highlightValidMoves();
-        highlightCurrentPlayer();
+        console.log(currentPlayer.id)
+        // Emit the updated move to the server
+        socket.emit('player_move', {
+            game_id: currentGameId,
+            player_id: currentPlayer.id,
+            new_x: newX,
+            new_y: newY
+        });
         
         // Reset flag after a short delay (ensure move is fully processed)
         setTimeout(() => {
             isProcessingMove = false;
-        }, 300); // You can adjust the timeout (300 ms) to suit your game's speed
+        }, 300); // Adjust timeout for game speed
     } else {
         showWarning("Invalid move. Click a valid cell.");
     }
@@ -136,6 +314,7 @@ function isCellValid(x, y) {
 function movePlayer(player, newX, newY) {
     const currentCell = document.getElementById(`cell-${player.position.x}-${player.position.y}`);
     const newCell = document.getElementById(`cell-${newX}-${newY}`);
+    const playerNumber = currentPlayer.id.split('_')[1];
 
     // Clear the current cell if it exists
     if (currentCell) {
@@ -148,9 +327,8 @@ function movePlayer(player, newX, newY) {
 
     // Add the player marker to the new cell
     if (newCell) {
-        newCell.innerHTML = `<div class="player-marker" id="marker${player.id}" style="background-color:${player.color}; transform: translate(-50%, -50%);"></div>`;
+        newCell.innerHTML = `<div class="player-marker" id="marker${playerNumber}" style="background-color:${player.color}; transform: translate(-50%, -50%);"></div>`;
     }
-
     // Check for win condition after the move is complete
     checkWinCondition(player);
 }
@@ -392,12 +570,17 @@ function isWallBlocking(x, y, dx, dy) {
 }
 
 function checkWinCondition(player) {
-    const winPosition = player === player1 ? 0 : 8;
+    const winPosition = player === player1 ? 0 : 8; // Define the winning position
     if (player.position.x === winPosition) {
-        gameOver = true; // Set gameOver to true when there's a winner
-        setTimeout(() => {
-            alert(`Player ${player.id} wins! The game is over. Please click the reset button to play again.`);
-        }, 500);
+        // If player reaches the win position, trigger game over
+
+        // Set the gameOver flag on the client side (for UI handling)
+        gameOver = true;
+
+        // Notify the server to mark the game as over in the database
+        socket.emit('game_over', { gameId: currentGameId, winnerId: player.id });
+
+        // Disable all interactive elements (move, place walls, etc.)
         disableCellInteractions();
     }
 }
@@ -407,11 +590,10 @@ function disableCellInteractions() {
     cells.forEach(cell => {
         cell.style.pointerEvents = 'none';
     });
-}
-
-function setupResetButton() {
-    const resetButton = document.getElementById('reset-button');
-    resetButton.addEventListener('click', resetGame);
+    const gaps= document.querySelectorAll('.gap');
+    gaps.forEach(gap => {
+        gap.style.pointerEvents = 'none';
+    });
 }
 
 function canReachWinPosition(player) {
@@ -451,43 +633,6 @@ function canReachWinPosition(player) {
     return false; // No path found
 }
 
-function resetGame() {
-    gameOver = false;
-    occupiedWalls.horizontal.clear();
-    occupiedWalls.vertical.clear();
-    
-    // Reset wall counts to 10 for both players
-    player1WallCount = 10;
-    player2WallCount = 10;
-
-    // Reset player positions
-    player1.position = { x: 8, y: 4 };
-    player2.position = { x: 0, y: 4 };
-
-    // Reset current player to Player 1
-    currentPlayer = player1;
-
-    // Re-enable cell pointer events
-    const allCells = document.querySelectorAll('.cell');
-    allCells.forEach(cell => {
-        cell.style.pointerEvents = 'auto'; 
-        cell.innerHTML = ''; 
-        cell.classList.remove('shadowy'); 
-        const existingHighlight = cell.querySelector('.highlight');
-        if (existingHighlight) {
-            cell.removeChild(existingHighlight); 
-        }
-    });
-
-    // Reset wall visuals
-    const gaps = document.querySelectorAll('.gap');
-    gaps.forEach(gap => {
-        gap.classList.remove('wall-placed');
-    });
-
-    initBoard();
-}
-
 function initGaps() {
     const gaps = document.querySelectorAll('.gap');
     gaps.forEach(gap => {
@@ -499,49 +644,53 @@ function initGaps() {
 
 function showWallPreview(event) {
     const gapType = event.target.dataset.gapType;
-    if (gapType === 'cross') {
+    if (event.target.classList.contains('cross')) {
+        document.querySelectorAll('.wall-preview').forEach((gap) => {
+            gap.classList.remove('wall-preview');
+        });
         return;
     }
+    else {
+        const closestCells = getClosestCells(event, gapType);
+        const gapsToColor = getGapsToColor(closestCells[0], closestCells[1], gapType);
 
-    const closestCells = getClosestCells(event, gapType);
-    const gapsToColor = getGapsToColor(closestCells[0], closestCells[1], gapType);
+        if (gapsToColor && gapsToColor.length > 0) {
+            const crossGapsToCheck = [];
+            if (gapType === 'horizontal') {
+                const y = parseCellPosition(closestCells[0])[0];
+                const xMin = Math.min(parseCellPosition(closestCells[0])[1], parseCellPosition(closestCells[1])[1]);
+                crossGapsToCheck.push(`gap-cross-${y}-${xMin}`);
+            } else if (gapType === 'vertical') {
+                const yMin = Math.min(parseCellPosition(closestCells[0])[0], parseCellPosition(closestCells[1])[0]);
+                const x = parseCellPosition(closestCells[0])[1];
+                crossGapsToCheck.push(`gap-cross-${yMin + 1}-${x}`);
+            }
 
-    if (gapsToColor && gapsToColor.length > 0) {
-        const crossGapsToCheck = [];
-        if (gapType === 'horizontal') {
-            const y = parseCellPosition(closestCells[0])[0];
-            const xMin = Math.min(parseCellPosition(closestCells[0])[1], parseCellPosition(closestCells[1])[1]);
-            crossGapsToCheck.push(`gap-cross-${y}-${xMin}`);
-        } else if (gapType === 'vertical') {
-            const yMin = Math.min(parseCellPosition(closestCells[0])[0], parseCellPosition(closestCells[1])[0]);
-            const x = parseCellPosition(closestCells[0])[1];
-            crossGapsToCheck.push(`gap-cross-${yMin + 1}-${x}`);
-        }
+            // Check if the placement is valid
+            const isValidPlacement = gapsToColor.every((gap) => {
+                const id = gap.id;
+                const [_, x, y] = id.split('-');
+                const wallKey = `gap-${x}-${y}`;
 
-        // Check if the placement is valid
-        const isValidPlacement = gapsToColor.every((gap) => {
-            const id = gap.id;
-            const [_, x, y] = id.split('-');
-            const wallKey = `gap-${x}-${y}`;
-
-            return !occupiedWalls[gapType].has(wallKey) && !crossGapsToCheck.some((crossGapId) => {
-                return occupiedWalls['horizontal'].has(crossGapId) || occupiedWalls['vertical'].has(crossGapId);
-            });
-        });
-
-        if (isValidPlacement) {
-            // Remove wall-preview class from all gaps
-            document.querySelectorAll('.wall-preview').forEach((gap) => {
-                gap.classList.remove('wall-preview');
+                return !occupiedWalls[gapType].has(wallKey) && !crossGapsToCheck.some((crossGapId) => {
+                    return occupiedWalls['horizontal'].has(crossGapId) || occupiedWalls['vertical'].has(crossGapId);
+                });
             });
 
-            // Add wall-preview class to the gaps that should be shown
-            gapsToColor.forEach((gap) => {
-                if (gap) {
-                    gap.classList.add('wall-preview');
-                    currentlyShownGaps.push(gap);
-                }
-            });
+            if (isValidPlacement) {
+                // Remove wall-preview class from all gaps
+                document.querySelectorAll('.wall-preview').forEach((gap) => {
+                    gap.classList.remove('wall-preview');
+                });
+
+                // Add wall-preview class to the gaps that should be shown
+                gapsToColor.forEach((gap) => {
+                    if (gap) {
+                        gap.classList.add('wall-preview');
+                        currentlyShownGaps.push(gap);
+                    }
+                });
+            }
         }
     }
 }
@@ -555,7 +704,7 @@ function hideWallPreview(event) {
     }
 }
 
-function placeWall(event) {
+async function placeWall(event) {
     const gapType = event.target.dataset.gapType;
     const closestCells = getClosestCells(event, gapType);
 
@@ -570,7 +719,7 @@ function placeWall(event) {
     // Check wall limits
     if ((currentPlayer === player1 && player1WallCount <= 0) ||
         (currentPlayer === player2 && player2WallCount <= 0)) {
-        showWarning(`You has reached the maximum wall limit of ${maxWalls}.`);
+        showWarning(`You has reached the maximum wall limit of 10.`);
         return; // Prevent placing the wall
     }
 
@@ -627,8 +776,9 @@ function placeWall(event) {
         occupiedWalls.horizontal.add(crossGapId);
         occupiedWalls.vertical.add(crossGapId);
     });
-
-    showWarning(`Player ${currentPlayer.id} placed a wall`);
+    
+    const playerNumber = currentPlayer.id.split('_')[1];
+    showWarning(`Player ${playerNumber} placed a wall`);
     
     // Decrement the wall count for the current player
     if (currentPlayer === player1) {
@@ -636,11 +786,14 @@ function placeWall(event) {
     } else {
         player2WallCount--;
     }
-
-    // End the current player's turn
-    currentPlayer = currentPlayer === player1 ? player2 : player1;
-    highlightValidMoves();
-    highlightCurrentPlayer();
+    
+    // Emit the wall placement event to update the database
+    socket.emit('wall_placed', {
+        game_id: currentGameId,
+        player_id: currentPlayer,
+        wallCount: currentPlayer === player1 ? player1WallCount : player2WallCount,
+        occupiedWalls: JSON.stringify(occupiedWalls)
+    });
 }
 
 function getGapsToColor(cell1, cell2, gapType) {
@@ -758,8 +911,57 @@ document.getElementById('back-to-menu').addEventListener('click', function() {
     location.replace('menu.html'); // Replaces game.html in the history stack
 });
 
-// Call initGaps to activate wall functionality
+async function initializeGame() {
+    try {
+        // Emit the get-initial-data event
+        socket.emit('get-initial-data', { game_id: currentGameId });
+
+        // Wait for the player data and occupied walls to be received and processed
+        await new Promise((resolve, reject) => {
+            socket.once('initial-data', (data) => {  // Use 'once' to ensure it's only triggered once
+                console.log('Received initial data:', data);
+
+                if (data.players && data.players.length === 2) {
+                    player1 = new Player(data.players[0].player_id, data.players[0].x, data.players[0].y, data.players[0].color);
+                    player2 = new Player(data.players[1].player_id, data.players[1].x, data.players[1].y, data.players[1].color);
+
+                    console.log('Player 1:', player1);
+                    console.log('Player 2:', player2);
+
+                    player1WallCount = data.players[0].wall_count;
+                    player2WallCount = data.players[1].wall_count;
+
+                    console.log('Player 1 Wall Count:', player1WallCount);
+                    console.log('Player 2 Wall Count:', player2WallCount);
+
+                    // Ensure horizontal and vertical are arrays before using them in Sets
+                    occupiedWalls = {
+                        horizontal: new Set(Array.isArray(data.occupiedWalls.horizontal) ? data.occupiedWalls.horizontal : []),
+                        vertical: new Set(Array.isArray(data.occupiedWalls.vertical) ? data.occupiedWalls.vertical : [])
+                    };
+
+                    console.log('Occupied Walls:', occupiedWalls);
+
+                    resolve();  // Resolve the promise once player data and occupied walls are fully processed
+                } else {
+                    reject(new Error('Invalid player data or occupied walls received'));
+                }
+            });
+        });
+
+        // Now that player data is processed, fetch the current turn
+        currentPlayer = await fetchCurrentTurn();
+        console.log("Initial currentPlayer:", currentPlayer);
+
+        // Initialize the board and other game components
+        initBoard();
+        initGaps();
+    } catch (error) {
+        console.error("Failed to initialize game:", error);
+    }
+}
+
+// Call initializeGame on window load
 window.onload = () => {
-    initBoard();
-    initGaps();
+    initializeGame();
 };

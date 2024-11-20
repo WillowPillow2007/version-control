@@ -96,23 +96,40 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('game-code-text').textContent = gameCode;
         createRoomOverlay.classList.toggle('show', true);
     
-        // Store the game code in sessionStorage
+        // Store the game code and session ID for Player 1 (host) in sessionStorage
         sessionStorage.setItem('game_id', gameCode);
-
+        sessionStorage.setItem('player_id', 'player_1');  // Set the player ID for Player 1 (host)
+    
         // Send the game code and state to the server to create a room in the database
         fetch('/api/create-room', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 game_id: gameCode,    // Pass the generated game code
-                game_state: 'open'    // Pass the game state as 'open' when the room is created
+                game_state: 'open',    // Pass the game state as 'open' when the room is created
+                player_id: 'player_1' // Set player_1 as the creator
             })
         })
         .then(response => response.json())
-        .then(data => console.log(data.message))
-        .catch(error => console.error('Error creating game room:', error));
-    });
+        .then(data => {
+            console.log(data.message);
+            // Emit the join_game event to the server
+            socket.emit('join_game', {
+                game_id: gameCode,
+                player_id: 'player_1'
+            });
+        })
+        .catch(error => {
+            console.error('Error creating game room:', error);
+        });
 
+        // Listen for 'redirect_to_game' event from the server (Player 1 should wait until Player 2 joins)
+        socket.on('redirect_to_game', (data) => {
+            console.log('Received redirect_to_game event');
+            window.location.href = data.url;
+        });
+    });
+    
     const closeRoomButton = document.getElementById('close-room');
     closeRoomButton.addEventListener('click', () => {
         toggleOverlay(createRoomOverlay, false);
@@ -125,8 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
             if (data.success) {
                 console.log(data.message);
-                // Optionally, you can redirect the user to another page
-                window.location.href = 'menu.html'; // Or wherever you want
+                window.location.href = 'menu.html'; 
             } else {
                 console.error(data.message);
                 alert(data.message); // Show an error message if the room cannot be deleted
@@ -151,28 +167,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    const socket = io();  // This will connect to the server via WebSocket
+
+    // Listen for 'redirect_to_game' event from the server (Player 2 should wait until game starts)
+    socket.on('redirect_to_game', (data) => {
+        console.log('Received redirect_to_game event');
+        window.location.href = data.url;
+    });
+    
     document.getElementById('join-room-button').addEventListener('click', () => {
         const gameCode = document.getElementById('join-room-code').value.toUpperCase();
-        // TO DO: Implement logic to join the room
-            // Validate if the game code is not empty
+        const playerId = 'player_2';  // Assume Player 2 is joining
+    
         if (gameCode) {
             fetch('/api/join-room', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ game_id: gameCode })
+                body: JSON.stringify({
+                    game_id: gameCode,
+                    player_id: playerId  // Pass Player 2's ID
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Successfully joined, update game state
                     console.log('Joined the room successfully');
-                    window.location.href = 'game-online.html'; // Redirect to the game screen or perform any other action
+                    socket.emit('join_game', {
+                        game_id: gameCode,
+                        player_id: playerId
+                    });
+    
+                    // Disable the join button after joining
+                    document.getElementById('join-room-button').disabled = true;
+                    
                 } else {
                     console.log('Failed to join room:', data.message);
-                    alert(data.message); // Show an error message if game is not open or invalid code
+                    alert(data.message);
                 }
             })
-            .catch(error => console.error('Error joining game room:', error));
+            .catch(error => {
+                console.error('Error joining game room:', error);
+                alert('An error occurred while joining the room.');
+            });
         } else {
             alert('Please enter a game code.');
         }

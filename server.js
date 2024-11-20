@@ -18,10 +18,12 @@ app.use(bodyParser.json());
 
 // Session setup
 app.use(session({
-  secret: 'your-secret-key',
-  resave: false,
-  saveUninitialized: true
+    secret: 'WillowPillow@1802',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
 }));
+
 
 const PORT = process.env.PORT || 3000;
 
@@ -31,165 +33,373 @@ app.use(express.static(publicDir));
 
 // Redirect to menu.html on the root URL
 app.get('/', (req, res) => {
-  res.sendFile(path.join(publicDir, 'menu.html'));
+    res.sendFile(path.join(publicDir, 'menu.html'));
 });
 
 // Catch-all route for other paths
 app.get('*', (req, res) => {
-  res.sendFile(path.join(publicDir, 'menu.html'));
+    res.sendFile(path.join(publicDir, 'menu.html'));
 });
 
-// POST route to create a game room
 app.post('/api/create-room', (req, res) => {
-  const { game_id } = req.body;
+    const { game_id, game_state, player_id } = req.body;
 
-  // Check if the game_id already exists (optional check to ensure unique game_id)
-  const checkQuery = 'SELECT * FROM Games WHERE game_id = ?';
-  db.get(checkQuery, [game_id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: 'Internal error occurred while checking game ID.' });
-    }
+    const checkQuery = 'SELECT * FROM Games WHERE game_id = ?';
+    db.get(checkQuery, [game_id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Internal error occurred while checking game ID.' });
+        }
 
-    if (row) {
-      // If the game_id already exists, return an error
-      return res.status(400).json({ success: false, message: 'Game ID already exists. Please choose a different game ID.' });
-    }
+        if (row) {
+            return res.status(400).json({ success: false, message: 'Game ID already exists. Please choose a different game ID.' });
+        }
 
-    // Insert a new game record into the database
-    const query = 'INSERT INTO Games (game_id, game_state, game_time_elapsed) VALUES (?, "open", 0)';
-    db.run(query, [game_id], function(err) {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Failed to create game room.' });
-      }
+        const initialOccupiedWalls = JSON.stringify({ horizontal: [], vertical: [] });
 
-      // Set the session game_id to track this room for the user (the creator)
-      req.session.game_id = game_id;
+        const query = `
+            INSERT INTO Games (game_id, game_state, game_time_elapsed, player_1_session_id, current_turn, occupied_walls)
+            VALUES (?, ?, 0, ?, "player_1", ?)
+        `;
+        db.run(query, [game_id, game_state, req.session.id, initialOccupiedWalls], function (err) {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Failed to create game room.' });
+            }
 
-      // Send a success response
-      res.status(200).json({ success: true, message: 'Game room created successfully!' });
-    });
-  });
-});
+            const player1Query = `
+                UPDATE Games
+                SET player1_x = 8, player1_y = 4, player1_color = "#f0f", player1_wall_count = 10
+                WHERE game_id = ?`;
+            db.run(player1Query, [game_id], function (err) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: 'Failed to store Player 1 data.' });
+                }
 
-// POST route for joining a game room
-app.post('/api/join-room', (req, res) => {
-  const { game_id } = req.body;
-  const session_id = req.session.id;  // Using the session ID for player 2
-
-  // Query to check if the game exists and is in the "open" state
-  const query = 'SELECT * FROM Games WHERE game_id = ? AND game_state = "open"';
-  db.get(query, [game_id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: 'Internal error occurred.' });
-    }
-
-    if (!row) {
-      return res.status(400).json({ success: false, message: 'Invalid game code or the game is no longer open.' });
-    }
-
-    // Game found and is open, now we proceed to join the game
-
-    // Update the game to "in_progress" state and assign the session ID of player 2
-    const updateQuery = `
-      UPDATE Games 
-      SET game_state = "in_progress", player_2_session_id = ?, current_turn = "player_1"
-      WHERE game_id = ?`;
-    db.run(updateQuery, [session_id, game_id], function(err) {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Failed to join the game.' });
-      }
-
-      // Set the session game_id to track this room for the user
-      req.session.game_id = game_id;
-
-      // Respond with success
-      res.status(200).json({ success: true, message: 'Successfully joined the game!' });
-    });
-  });
-});
-
-// POST route to delete a game room
-app.post('/api/delete-room', (req, res) => {
-  if (!req.session.game_id) {
-    return res.status(400).json({ success: false, message: 'No active game to delete.' });
-  }
-
-  const game_id = req.session.game_id;
-
-  // Delete the game from the database if the state is still open
-  const query = 'SELECT * FROM Games WHERE game_id = ? AND game_state = "open"';
-  db.get(query, [game_id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ success: false, message: 'Error checking game state.' });
-    }
-
-    if (!row) {
-      return res.status(400).json({ success: false, message: 'Game is no longer open or has already been deleted.' });
-    }
-
-    const deleteQuery = 'DELETE FROM Games WHERE game_id = ?';
-    db.run(deleteQuery, [game_id], function(err) {
-      if (err) {
-        return res.status(500).json({ success: false, message: 'Failed to delete the game.' });
-      }
-
-      req.session.game_id = null;
-
-      res.status(200).json({ success: true, message: 'Game room deleted successfully!' });
-    });
-  });
-});
-
-// Socket.io logic for handling real-time connections
-io.on('connection', (socket) => {
-  let currentGameId = null;
-  let playerId = null;
-
-  // When a player joins a game
-  socket.on('join_game', (data) => {
-    currentGameId = data.game_id;
-    playerId = data.player_id;
-
-    if (!gameClients[currentGameId]) gameClients[currentGameId] = [];
-    gameClients[currentGameId].push({ socket, playerId });
-
-    console.log(`Player ${playerId} joined game ${currentGameId}`);
-    socket.emit('game_status', { message: 'You joined the game.' });
-
-    // Notify the other player if both players are connected
-    if (gameClients[currentGameId].length === 2) {
-      const opponent = gameClients[currentGameId].find(client => client.socket !== socket);
-      opponent.socket.emit('game_status', { message: 'Your opponent has joined!' });
-
-      // Emit the game_updated event to update the game state for both players
-      const gameData = getGameData(currentGameId); // Retrieve the game data from the database
-      io.to(currentGameId).emit('game_updated', gameData); // Emit the event to both players
-    }
-  });
-
-  // Handle player disconnect
-  socket.on('disconnect', () => {
-    if (currentGameId && gameClients[currentGameId]) {
-      console.log(`Player ${playerId} disconnected from game ${currentGameId}`);
-
-      // Find the remaining player in the game and declare them the winner
-      const remainingPlayer = gameClients[currentGameId].find(client => client.socket !== socket);
-      if (remainingPlayer) {
-        remainingPlayer.socket.emit('game_over', {
-          message: 'Your opponent disconnected. You win!',
-          result: 'win'
+                req.session.game_id = game_id;
+                req.session.player_id = player_id;
+                res.status(200).json({ success: true, message: 'Game room created successfully!' });
+            });
         });
-      }
-
-      // Clean up the game
-      gameClients[currentGameId] = gameClients[currentGameId].filter(client => client.socket !== socket);
-      if (gameClients[currentGameId].length === 0) {
-        delete gameClients[currentGameId];
-      }
-    }
-  });
+    });
 });
+
+app.post('/api/join-room', (req, res) => {
+    const { game_id, player_id } = req.body;
+
+    // Query to check if the game exists and is in the "open" state
+    const query = 'SELECT * FROM Games WHERE game_id = ? AND game_state = "open"';
+    db.get(query, [game_id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Internal error occurred.' });
+        }
+
+        if (!row) {
+            return res.status(400).json({ success: false, message: 'Invalid game code or the game is no longer open.' });
+        }
+
+        // Create a new session for Player 2
+        req.session.regenerate((err) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Failed to create a new session for Player 2.' });
+            }
+
+            const sessionId = req.session.id;
+
+            // Update game state and current turn
+            const updateQuery = `
+                UPDATE Games
+                SET game_state = "in_progress", player_2_session_id = ?
+                WHERE game_id = ?`;
+            db.run(updateQuery, [sessionId, game_id], function(err) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: 'Failed to join the game.' });
+                }
+
+                // Insert Player 2's data (coordinates, color, and wall count)
+                const player2Query = `
+                    UPDATE Games
+                    SET player2_x = 0, player2_y = 4, player2_color = "#00ff00", player2_wall_count = 10
+                    WHERE game_id = ?`;
+                db.run(player2Query, [game_id], function(err) {
+                    if (err) {
+                        return res.status(500).json({ success: false, message: 'Failed to store Player 2 data.' });
+                    }
+
+                    // Store Player 2's session data
+                    req.session.game_id = game_id;
+                    req.session.player_id = player_id;
+
+                    res.status(200).json({ success: true, message: 'Successfully joined the game!' });
+                });
+            });
+        });
+    });
+});
+
+// Delete a game room
+app.post('/api/delete-room', (req, res) => {
+    if (!req.session.game_id) {
+        return res.status(400).json({ success: false, message: 'No active game to delete.' });
+    }
+
+    const game_id = req.session.game_id;
+
+    // Delete the game from the database if the state is still open
+    const query = 'SELECT * FROM Games WHERE game_id = ? AND game_state = "open"';
+        db.get(query, [game_id], (err, row) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Error checking game state.' });
+            }
+
+            if (!row) {
+                return res.status(400).json({ success: false, message: 'Game is no longer open or has already been deleted.' });
+            }
+
+            const deleteQuery = 'DELETE FROM Games WHERE game_id = ?';
+            db.run(deleteQuery, [game_id], function(err) {
+                if (err) {
+                    return res.status(500).json({ success: false, message: 'Failed to delete the game.' });
+                }
+
+                req.session.game_id = null;
+                res.status(200).json({ success: true, message: 'Game room deleted successfully!' });
+            });
+        });
+});
+
+app.get('/game/:gameId', (req, res) => {
+    const gameId = req.params.gameId;
+    res.render('game-online.html', { gameId });
+});
+
+// Socket.io setup for real-time communication
+io.on('connection', (socket) => {
+    let currentGameId = null;
+    let playerId = null;
+
+    // Server-side: Handling 'join_game' event
+    socket.on('join_game', (data) => {
+        console.log('join_game event received:', data);
+
+        currentGameId = data.game_id;
+        playerId = data.player_id;
+
+        // Ensure there's an entry for this game in the gameClients object
+        if (!gameClients[currentGameId]) {
+            gameClients[currentGameId] = [];
+        }
+
+        // Add the player to the gameClients object
+        gameClients[currentGameId].push({ socket, playerId });
+
+        console.log(`Player ${playerId} joined game ${currentGameId}`);
+        console.log('gameClients:', gameClients);
+
+        // If both players have joined, redirect them to the game room
+        if (gameClients[currentGameId].length === 2) {
+            // Emit redirect_to_game event to both players
+            gameClients[currentGameId].forEach(client => {
+                const url = `game-online.html?room=${currentGameId}`;
+                client.socket.emit('redirect_to_game', { url });
+            });
+        }
+    });
+
+    // Set game over
+    socket.on('game_over', (data) => {
+        const { gameId, winnerId } = data;  // Get the game ID and winner's player ID from the data
+
+        // Update the game state to 'done' in the database
+        db.run('UPDATE Games SET game_state = "done" WHERE game_id = ?', [gameId], function (err) {
+            if (err) {
+                console.error('Error setting game state:', err);
+                return;
+            }
+
+            console.log(`Game ${gameId} is now over.`);
+
+            // Create the game over message
+            const message = `Player ${winnerId} wins! The game is over. Please click the reset button to play again.`;
+
+            io.emit('game_over', { message, playerId: winnerId });
+
+            // Redirect players to menu page after 5 seconds and delete the game row
+            setTimeout(() => {
+                io.emit('redirect_to_menu', { url: '/menu.html' });
+
+                // Delete the game row from the database
+                db.run('DELETE FROM Games WHERE game_id = ?', [gameId], function (err) {
+                    if (err) {
+                        console.error('Error deleting game row:', err);
+                        return;
+                    }
+
+                    console.log(`Game row deleted from database.`);
+                });
+            }, 5000);
+        });
+    });
+    socket.on('fetch-turn', (data) => {
+        const { gameID } = data;
+    
+        // Retrieve the current turn from the database without changing it
+        db.get('SELECT current_turn FROM Games WHERE game_id = ?', [gameID], (err, row) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+    
+            if (!row) {
+                console.error(`No game found with ID ${gameID}`);
+                return;
+            }
+    
+            // Emit the current turn without updating it
+            socket.emit('turn-fetched', { currentTurn: row.current_turn });
+        });
+    });
+
+    socket.on('get-initial-data', (data) => {
+        console.log('Received get-initial-data request for game:', data.game_id);
+    
+        const gameId = data.game_id; // Get the game ID from the request
+    
+        // Fetch player data and occupied walls from the database based on the gameId
+        db.get('SELECT player1_x, player1_y, player1_color, player1_wall_count, player2_x, player2_y, player2_color, player2_wall_count, occupied_walls FROM Games WHERE game_id = ?', [gameId], (err, row) => {
+            if (err) {
+                console.error('Error fetching game data:', err);
+                return;
+            }
+    
+            if (!row) {
+                console.error(`No game found with ID ${gameId}`);
+                return;
+            }
+    
+            // Prepare the player data to send back to the client
+            const playersData = [
+                {
+                    player_id: 'player_1',
+                    x: row.player1_x,
+                    y: row.player1_y,
+                    color: row.player1_color,
+                    wall_count: row.player1_wall_count,
+                },
+                {
+                    player_id: 'player_2',
+                    x: row.player2_x,
+                    y: row.player2_y,
+                    color: row.player2_color,
+                    wall_count: row.player2_wall_count,
+                }
+            ];
+    
+            // Parse the occupied_walls JSON string back into an object
+            const occupiedWalls = JSON.parse(row.occupied_walls);
+    
+            // Convert the arrays back into Sets
+            occupiedWalls.horizontal = new Set(occupiedWalls.horizontal);
+            occupiedWalls.vertical = new Set(occupiedWalls.vertical);
+    
+            // Log to confirm the player and occupied walls data before sending it
+            console.log('Sending player data and occupied walls to client:', { playersData, occupiedWalls });
+    
+            // Emit the player data and occupied walls to the client
+            socket.emit('initial-data', { players: playersData, occupiedWalls });
+    
+            console.log('Player data and occupied walls sent to client for game:', gameId);
+        });
+    });
+
+    // Listen for player move events
+    socket.on('player_move', (data) => {
+        const { game_id, player_id, new_x, new_y } = data;
+        
+        console.log('gameClients:', gameClients);
+        console.log('game_id:', game_id);
+        console.log('player_id:', player_id);
+        console.log('client.playerId values:', gameClients[game_id].map(client => client.playerId));
+
+        // Retrieve the current game state from the database
+        db.get('SELECT * FROM Games WHERE game_id = ?', [game_id], (err, game) => {
+            if (err) {
+                console.error("Error retrieving game state:", err);
+                socket.emit('error', { message: 'Failed to retrieve game state' });
+                return;
+            }
+
+            // Check if it is the player's turn
+            if (game.current_turn !== player_id) {
+                // It's not the player's turn, so send an error
+                socket.emit('error', { message: 'It is not your turn' });
+                return;
+            }
+
+            // Update the game state in the database (or memory)
+            db.run('UPDATE Games SET ' +
+            (player_id === 'player_1' ? 'player1_x = ?, player1_y = ?' : 'player2_x = ?, player2_y = ?') +
+            ' WHERE game_id = ?', [new_x, new_y, game_id], (err) => {
+                if (err) {
+                    console.error("Error updating player position:", err);
+                    // Optionally notify the client about the failure
+                    socket.emit('error', { message: 'Failed to update position' });
+                    return;
+                }
+
+                // Update the current turn
+                const newTurn = game.current_turn === 'player_1' ? 'player_2' : 'player_1';
+                db.run('UPDATE Games SET current_turn = ? WHERE game_id = ?', [newTurn, game_id], (err) => {
+                    if (err) {
+                        console.error("Error updating current turn:", err);
+                        return;
+                    }
+
+                    // Emit the opponent move event
+                    socket.broadcast.emit('opponent_move', { player_id, new_x, new_y });
+
+                    // Emit the turn update event to the other client
+                    socket.emit('turn_disable', { current_turn: newTurn });
+
+                    // Emit the turn update event to the other client
+                    socket.broadcast.emit('turn_update', { current_turn: newTurn });
+                });
+            });
+        });
+    });
+
+    socket.on('wall_placed', (data) => {
+        console.log('Received wall placement data:', data);
+        const { game_id, player_id, wallCount, occupiedWalls } = data;
+        console.log(`Updating wall count for player ${player_id} in game ${game_id}`);
+        console.log('Occupied walls:', occupiedWalls);
+        db.run('UPDATE Games SET ' + (player_id === 'player_1' ? 'player1_wall_count' : 'player2_wall_count') + ' = ?, occupied_walls = ? WHERE game_id = ?', [wallCount, occupiedWalls, game_id], function (err) {
+            if (err) {
+                console.error('Error updating wall count and occupied walls:', err);
+                return;
+            }
+            console.log('Wall count and occupied walls updated successfully');
+
+            // Update the current turn
+            const newTurn = game.current_turn === 'player_1' ? 'player_2' : 'player_1';
+            // Retrieve the current game state from the database
+            db.run('UPDATE Games SET current_turn = ? WHERE game_id = ?', [newTurn, game_id], (err) => {
+                if (err) {
+                    console.error("Error updating current turn:", err);
+                    return;
+                }
+
+                // Emit the opponent move event
+                socket.broadcast.emit('oppenent_wall', { player_id: player_id, wallCount: wallCount, newOccupiedWalls: occupiedWalls});
+
+                // Emit the turn update event to the other client
+                socket.emit('turn_disable', { current_turn: newTurn });
+
+                // Emit the turn update event to the other client
+                socket.broadcast.emit('turn_update', { current_turn: newTurn });
+            });
+        });
+    });
+}); 
 
 server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });

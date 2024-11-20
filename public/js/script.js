@@ -1,4 +1,4 @@
-import Player from './js/Player.js';
+import Player from './Player.js';
 
 let gameOver = false; // Add this at the top
 const player1 = new Player("1", 8, 4, "#f0f");
@@ -499,49 +499,53 @@ function initGaps() {
 
 function showWallPreview(event) {
     const gapType = event.target.dataset.gapType;
-    if (gapType === 'cross') {
+    if (event.target.classList.contains('cross')) {
+        document.querySelectorAll('.wall-preview').forEach((gap) => {
+            gap.classList.remove('wall-preview');
+        });
         return;
     }
+    else {
+        const closestCells = getClosestCells(event, gapType);
+        const gapsToColor = getGapsToColor(closestCells[0], closestCells[1], gapType);
 
-    const closestCells = getClosestCells(event, gapType);
-    const gapsToColor = getGapsToColor(closestCells[0], closestCells[1], gapType);
+        if (gapsToColor && gapsToColor.length > 0) {
+            const crossGapsToCheck = [];
+            if (gapType === 'horizontal') {
+                const y = parseCellPosition(closestCells[0])[0];
+                const xMin = Math.min(parseCellPosition(closestCells[0])[1], parseCellPosition(closestCells[1])[1]);
+                crossGapsToCheck.push(`gap-cross-${y}-${xMin}`);
+            } else if (gapType === 'vertical') {
+                const yMin = Math.min(parseCellPosition(closestCells[0])[0], parseCellPosition(closestCells[1])[0]);
+                const x = parseCellPosition(closestCells[0])[1];
+                crossGapsToCheck.push(`gap-cross-${yMin + 1}-${x}`);
+            }
 
-    if (gapsToColor && gapsToColor.length > 0) {
-        const crossGapsToCheck = [];
-        if (gapType === 'horizontal') {
-            const y = parseCellPosition(closestCells[0])[0];
-            const xMin = Math.min(parseCellPosition(closestCells[0])[1], parseCellPosition(closestCells[1])[1]);
-            crossGapsToCheck.push(`gap-cross-${y}-${xMin}`);
-        } else if (gapType === 'vertical') {
-            const yMin = Math.min(parseCellPosition(closestCells[0])[0], parseCellPosition(closestCells[1])[0]);
-            const x = parseCellPosition(closestCells[0])[1];
-            crossGapsToCheck.push(`gap-cross-${yMin + 1}-${x}`);
-        }
+            // Check if the placement is valid
+            const isValidPlacement = gapsToColor.every((gap) => {
+                const id = gap.id;
+                const [_, x, y] = id.split('-');
+                const wallKey = `gap-${x}-${y}`;
 
-        // Check if the placement is valid
-        const isValidPlacement = gapsToColor.every((gap) => {
-            const id = gap.id;
-            const [_, x, y] = id.split('-');
-            const wallKey = `gap-${x}-${y}`;
-
-            return !occupiedWalls[gapType].has(wallKey) && !crossGapsToCheck.some((crossGapId) => {
-                return occupiedWalls['horizontal'].has(crossGapId) || occupiedWalls['vertical'].has(crossGapId);
-            });
-        });
-
-        if (isValidPlacement) {
-            // Remove wall-preview class from all gaps
-            document.querySelectorAll('.wall-preview').forEach((gap) => {
-                gap.classList.remove('wall-preview');
+                return !occupiedWalls[gapType].has(wallKey) && !crossGapsToCheck.some((crossGapId) => {
+                    return occupiedWalls['horizontal'].has(crossGapId) || occupiedWalls['vertical'].has(crossGapId);
+                });
             });
 
-            // Add wall-preview class to the gaps that should be shown
-            gapsToColor.forEach((gap) => {
-                if (gap) {
-                    gap.classList.add('wall-preview');
-                    currentlyShownGaps.push(gap);
-                }
-            });
+            if (isValidPlacement) {
+                // Remove wall-preview class from all gaps
+                document.querySelectorAll('.wall-preview').forEach((gap) => {
+                    gap.classList.remove('wall-preview');
+                });
+
+                // Add wall-preview class to the gaps that should be shown
+                gapsToColor.forEach((gap) => {
+                    if (gap) {
+                        gap.classList.add('wall-preview');
+                        currentlyShownGaps.push(gap);
+                    }
+                });
+            }
         }
     }
 }
