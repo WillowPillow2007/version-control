@@ -367,34 +367,41 @@ io.on('connection', (socket) => {
     });
 
     socket.on('wall_placed', (data) => {
-        console.log('Received wall placement data:', data);
         const { game_id, player_id, wallCount, occupiedWalls } = data;
-        console.log(`Updating wall count for player ${player_id} in game ${game_id}`);
-        console.log('Occupied walls:', occupiedWalls);
+        console.log(player_id)
         db.run('UPDATE Games SET ' + (player_id === 'player_1' ? 'player1_wall_count' : 'player2_wall_count') + ' = ?, occupied_walls = ? WHERE game_id = ?', [wallCount, occupiedWalls, game_id], function (err) {
             if (err) {
                 console.error('Error updating wall count and occupied walls:', err);
                 return;
             }
             console.log('Wall count and occupied walls updated successfully');
-
-            // Update the current turn
-            const newTurn = game.current_turn === 'player_1' ? 'player_2' : 'player_1';
+    
             // Retrieve the current game state from the database
-            db.run('UPDATE Games SET current_turn = ? WHERE game_id = ?', [newTurn, game_id], (err) => {
+            db.get('SELECT current_turn FROM Games WHERE game_id = ?', [game_id], (err, row) => {
                 if (err) {
-                    console.error("Error updating current turn:", err);
+                    console.error("Error retrieving current turn:", err);
                     return;
                 }
-
-                // Emit the opponent move event
-                socket.broadcast.emit('oppenent_wall', { player_id: player_id, wallCount: wallCount, newOccupiedWalls: occupiedWalls});
-
-                // Emit the turn update event to the other client
-                socket.emit('turn_disable', { current_turn: newTurn });
-
-                // Emit the turn update event to the other client
-                socket.broadcast.emit('turn_update', { current_turn: newTurn });
+    
+                // Update the current turn
+                const newTurn = row.current_turn === 'player_1' ? 'player_2' : 'player_1';
+    
+                // Update the current turn in the database
+                db.run('UPDATE Games SET current_turn = ? WHERE game_id = ?', [newTurn, game_id], (err) => {
+                    if (err) {
+                        console.error("Error updating current turn:", err);
+                        return;
+                    }
+    
+                    // Emit the opponent move event
+                    socket.broadcast.emit('opponent_wall', { player_id: player_id, wallCount: wallCount, newOccupiedWalls: occupiedWalls});
+    
+                    // Emit the turn update event to the other client
+                    socket.emit('turn_disable', { current_turn: newTurn });
+    
+                    // Emit the turn update event to the other client
+                    socket.broadcast.emit('turn_update', { current_turn: newTurn });
+                });
             });
         });
     });

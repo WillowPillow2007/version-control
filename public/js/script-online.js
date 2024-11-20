@@ -10,6 +10,9 @@ let currentlyShownGaps = [];
 let player1WallCount;
 let player2WallCount;
 let occupiedWalls;
+let player1TimerValue = 300;
+let player2TimerValue = 300;
+let timerInterval;
 
 const currentGameId = new URLSearchParams(window.location.search).get('room');
 console.log('currentGameId:', currentGameId);
@@ -77,6 +80,7 @@ socket.on('turn_disable', (data) => {
         currentPlayer = player2;
     }
     highlightCurrentPlayer();
+
 });
 
 socket.on('turn_update', (data) => {
@@ -90,6 +94,7 @@ socket.on('turn_update', (data) => {
     enableCellInteractions();
     highlightValidMoves();
     highlightCurrentPlayer();
+    // timerInterval = setInterval(updateTimer, 1000); // Start the timer
 });
 
 function removeHighlightValidMoves() {
@@ -170,7 +175,6 @@ socket.on('redirect_to_menu', (data) => {
 });
 
 socket.on('opponent_wall', (data) => {
-    console.log('Opponent placed a wall:', data);
     const { player_id, newOccupiedWalls, wallCount } = data;
     if (player_id === 'player_1') {
         player1WallCount = wallCount;
@@ -179,14 +183,34 @@ socket.on('opponent_wall', (data) => {
     }
     occupiedWalls = JSON.parse(newOccupiedWalls);
 
+    // Update the occupiedWalls object with the new wall placement
+    occupiedWalls.horizontal = new Set(occupiedWalls.horizontal);
+    occupiedWalls.vertical = new Set(occupiedWalls.vertical);
+
     // Temporarily mark walls as occupied to check for path
-    Object.keys(occupiedWalls).forEach(gapType => {
-        occupiedWalls[gapType].forEach(gapId => {
-            const gap = document.querySelector(`#${gapId}`);
-            if (gap) {
-                gap.classList.add('wall-placed');
-            }
-        });
+    occupiedWalls.horizontal.forEach(gapId => {
+        const gap = document.querySelector(`#${gapId}[data-gap-type="horizontal"]`);
+        if (gap) {
+            gap.classList.add('wall-placed');
+            console.log("Added horizontal");
+        }
+        const crossGap = document.querySelector(`#${gapId}[data-gap-type="cross"]`);
+        if (crossGap) {
+            crossGap.classList.add('wall-placed');
+            console.log("Added cross");
+        }
+    });
+    occupiedWalls.vertical.forEach(gapId => {
+        const gap = document.querySelector(`#${gapId}[data-gap-type="vertical"]`);
+        if (gap) {
+            gap.classList.add('wall-placed');
+            console.log("Added vertical");
+        }
+        const crossGap = document.querySelector(`#${gapId}[data-gap-type="cross"]`);
+        if (crossGap) {
+            crossGap.classList.add('wall-placed');
+            console.log("Added cross");
+        }
     });
 });
 
@@ -217,7 +241,7 @@ let isProcessingMove = false;
 
 async function handleCellClick(event) {
     if (gameOver || isProcessingMove) return; // Prevent moves if the game is over or if a move is in progress
-    
+
     const cellId = event.target.id;
     const [_, x, y] = cellId.split('-');
     const newX = parseInt(x);
@@ -240,7 +264,6 @@ async function handleCellClick(event) {
             new_x: newX,
             new_y: newY
         });
-        
         // Reset flag after a short delay (ensure move is fully processed)
         setTimeout(() => {
             isProcessingMove = false;
@@ -250,11 +273,35 @@ async function handleCellClick(event) {
     }
 }
 
+// function updateTimer() {
+//     const player1Timer = document.getElementById('player1-timer');
+//     const player2Timer = document.getElementById('player2-timer');
+//     if (currentPlayer === player1) {
+//         player1TimerValue -= 1;
+//         player1Timer.innerText = `Time: ${formatTime(player1TimerValue)}`;
+//         player1Timer.dataset.time = player1TimerValue;
+//         if (player1TimerValue === 0) {
+//             clearInterval(timerInterval);
+//             // Handle timer expiration
+//         }
+//     } else {
+//         player2TimerValue -= 1;
+//         player2Timer.innerText = `Time: ${formatTime(player2TimerValue)}`;
+//         player2Timer.dataset.time = player2TimerValue;
+//         if (player2TimerValue === 0) {
+//             clearInterval(timerInterval);
+//             // Handle timer expiration
+//         }
+//     }
+// }
+
 function highlightCurrentPlayer() {
     const player1Indicator = document.getElementById('player1-indicator');
     const player2Indicator = document.getElementById('player2-indicator');
     const player1WallCountDisplay = document.getElementById('player1-wall-count');
     const player2WallCountDisplay = document.getElementById('player2-wall-count');
+    // const player1Timer = document.getElementById('player1-timer');
+    // const player2Timer = document.getElementById('player2-timer');
 
     player1Indicator.classList.remove('active');
     player2Indicator.classList.remove('active');
@@ -263,6 +310,9 @@ function highlightCurrentPlayer() {
     player1WallCountDisplay.classList.remove('active');
     player2WallCountDisplay.classList.remove('active');
 
+    player1Timer.classList.remove('active');
+    player2Timer.classList.remove('active');
+
     // Update wall count displays
     player1WallCountDisplay.innerText = `Walls: ${player1WallCount}`;
     player2WallCountDisplay.innerText = `Walls: ${player2WallCount}`;
@@ -270,11 +320,20 @@ function highlightCurrentPlayer() {
     if (currentPlayer === player1) {
         player1Indicator.classList.add('active');
         player1WallCountDisplay.classList.add('active'); // Light up for Player 1
+        // player1Timer.classList.add('active');
+
     } else {
         player2Indicator.classList.add('active');
         player2WallCountDisplay.classList.add('active'); // Light up for Player 2
+        // player2Timer.classList.add('active');
     }
 }
+
+// function formatTime(time) {
+//     const minutes = Math.floor(time / 60);
+//     const seconds = time % 60;
+//     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+// }
 
 //Check if opponent is adjacent to do the jump
 function isOpponentInWay(player, newX, newY) {
@@ -786,13 +845,16 @@ async function placeWall(event) {
     } else {
         player2WallCount--;
     }
-    
+    console.log(occupiedWalls);
     // Emit the wall placement event to update the database
     socket.emit('wall_placed', {
         game_id: currentGameId,
-        player_id: currentPlayer,
+        player_id: currentPlayer.id,
         wallCount: currentPlayer === player1 ? player1WallCount : player2WallCount,
-        occupiedWalls: JSON.stringify(occupiedWalls)
+        occupiedWalls: JSON.stringify({
+            horizontal: Array.from(occupiedWalls.horizontal),
+            vertical: Array.from(occupiedWalls.vertical)
+        })
     });
 }
 

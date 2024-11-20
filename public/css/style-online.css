@@ -169,7 +169,6 @@ h1 {
 .wall-count {
   font-size: 24px; /* Adjust size as needed */
   font-weight: bold;
-  color: #0ff; /* Bright cyan color for visibility */
   margin-left: 10px; /* Space between the player name and wall count */
 }
 
@@ -228,3 +227,31 @@ h1 {
 #back-to-menu:hover {
   background-color: rgb(0, 150, 0);
 }
+
+/* .timer {
+  font-size: 24px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+#player1-timer.active {
+  font-weight: bold;
+  color: #f0f;
+  text-shadow: 0 0 10px rgba(255, 20, 147, 0.7);
+}
+
+#player2-timer.active {
+  font-weight: bold;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+}
+
+#player1-timer {
+  color: #800080;
+  text-shadow: 0 0 10px rgba(255, 20, 147, 0.7);
+}
+
+#player2-timer {
+  color: green;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+} */
