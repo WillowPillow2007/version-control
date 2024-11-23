@@ -255,3 +255,54 @@ h1 {
   color: green;
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
 } */
+
+@media screen and (max-width: 768px) {
+  h1 {
+    font-size: 30px;
+  }
+  .game-container {
+    width: auto;
+    height: auto;
+  }
+  .board{
+    width: auto;
+    height: auto;
+  }
+  .row {
+    width: auto;
+    height: auto;
+  }
+  .cell {
+    width: 40px;
+    height: 40px; /* Reduce the cell size for smaller screens */
+  }
+  .gap.vertical {
+    width: 4px;
+    height: 40px; /* Matches the effective height of each cell */
+  }
+  
+  .gap.horizontal {
+    width: 40px; /* Matches the effective width of each cell */
+    height: 4px;
+  }
+  
+  .gap.cross {
+    width: 4px;
+    height: 4px;
+  }
+  .player-marker{
+    width: 26px;
+    height: 26px;
+  }
+
+  #back-to-menu {
+    width: 150px;
+    height: 40px;
+    font-size: 20px;
+    top: 30px;
+  }
+}
+
+@media screen {
+  
+}

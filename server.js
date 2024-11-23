@@ -56,15 +56,19 @@ app.post('/api/create-room', (req, res) => {
 
         const initialOccupiedWalls = JSON.stringify({ horizontal: [], vertical: [] });
 
+        // Randomly select the starting player (either 'player_1' or 'player_2')
+        const startingTurn = Math.random() < 0.5 ? 'player_1' : 'player_2';
+
         const query = `
             INSERT INTO Games (game_id, game_state, game_time_elapsed, player_1_session_id, current_turn, occupied_walls)
-            VALUES (?, ?, 0, ?, "player_1", ?)
+            VALUES (?, ?, 0, ?, ?, ?)
         `;
-        db.run(query, [game_id, game_state, req.session.id, initialOccupiedWalls], function (err) {
+        db.run(query, [game_id, game_state, req.session.id, startingTurn, initialOccupiedWalls], function (err) {
             if (err) {
                 return res.status(500).json({ success: false, message: 'Failed to create game room.' });
             }
 
+            // Initialize player 1's data
             const player1Query = `
                 UPDATE Games
                 SET player1_x = 8, player1_y = 4, player1_color = "#f0f", player1_wall_count = 10
@@ -74,6 +78,7 @@ app.post('/api/create-room', (req, res) => {
                     return res.status(500).json({ success: false, message: 'Failed to store Player 1 data.' });
                 }
 
+                // Set session data
                 req.session.game_id = game_id;
                 req.session.player_id = player_id;
                 res.status(200).json({ success: true, message: 'Game room created successfully!' });
@@ -198,16 +203,31 @@ io.on('connection', (socket) => {
         if (gameClients[currentGameId].length === 2) {
             // Emit redirect_to_game event to both players
             gameClients[currentGameId].forEach(client => {
-                const url = `game-online.html?room=${currentGameId}`;
+                const url = `game-online.html?room=${currentGameId}&playerId=${client.playerId}`;
                 client.socket.emit('redirect_to_game', { url });
             });
         }
     });
 
+    socket.on('update-socket-id', (data) => {
+        const gameId = data.gameId;
+        const playerId = data.playerId;
+        const newSocketId = socket.id;
+        
+        // Update the socket in gameClients
+        gameClients[gameId].forEach((client) => {
+            if (client.playerId === playerId) {
+                client.socket = socket;
+            }
+        });
+        
+        console.log(`Socket updated for player ${playerId} in game ${gameId}: ${newSocketId}`);
+    });
+
     // Set game over
     socket.on('game_over', (data) => {
         const { gameId, winnerId } = data;  // Get the game ID and winner's player ID from the data
-
+        const winnerNumber = winnerId.split('_')[1];
         // Update the game state to 'done' in the database
         db.run('UPDATE Games SET game_state = "done" WHERE game_id = ?', [gameId], function (err) {
             if (err) {
@@ -218,7 +238,7 @@ io.on('connection', (socket) => {
             console.log(`Game ${gameId} is now over.`);
 
             // Create the game over message
-            const message = `Player ${winnerId} wins! The game is over. Please click the reset button to play again.`;
+            const message = `Player ${winnerNumber} wins! The game is over.`;
 
             io.emit('game_over', { message, playerId: winnerId });
 
@@ -238,6 +258,7 @@ io.on('connection', (socket) => {
             }, 5000);
         });
     });
+
     socket.on('fetch-turn', (data) => {
         const { gameID } = data;
     
@@ -263,8 +284,8 @@ io.on('connection', (socket) => {
     
         const gameId = data.game_id; // Get the game ID from the request
     
-        // Fetch player data and occupied walls from the database based on the gameId
-        db.get('SELECT player1_x, player1_y, player1_color, player1_wall_count, player2_x, player2_y, player2_color, player2_wall_count, occupied_walls FROM Games WHERE game_id = ?', [gameId], (err, row) => {
+        // Fetch player data, occupied walls, and current turn from the database based on the gameId
+        db.get('SELECT player1_x, player1_y, player1_color, player1_wall_count, player2_x, player2_y, player2_color, player2_wall_count, occupied_walls, current_turn FROM Games WHERE game_id = ?', [gameId], (err, row) => {
             if (err) {
                 console.error('Error fetching game data:', err);
                 return;
@@ -300,24 +321,14 @@ io.on('connection', (socket) => {
             occupiedWalls.horizontal = new Set(occupiedWalls.horizontal);
             occupiedWalls.vertical = new Set(occupiedWalls.vertical);
     
-            // Log to confirm the player and occupied walls data before sending it
-            console.log('Sending player data and occupied walls to client:', { playersData, occupiedWalls });
-    
             // Emit the player data and occupied walls to the client
             socket.emit('initial-data', { players: playersData, occupiedWalls });
-    
-            console.log('Player data and occupied walls sent to client for game:', gameId);
         });
-    });
+    });        
 
     // Listen for player move events
     socket.on('player_move', (data) => {
         const { game_id, player_id, new_x, new_y } = data;
-        
-        console.log('gameClients:', gameClients);
-        console.log('game_id:', game_id);
-        console.log('player_id:', player_id);
-        console.log('client.playerId values:', gameClients[game_id].map(client => client.playerId));
 
         // Retrieve the current game state from the database
         db.get('SELECT * FROM Games WHERE game_id = ?', [game_id], (err, game) => {
@@ -363,12 +374,12 @@ io.on('connection', (socket) => {
                     socket.broadcast.emit('turn_update', { current_turn: newTurn });
                 });
             });
-        });
+        })
     });
 
     socket.on('wall_placed', (data) => {
         const { game_id, player_id, wallCount, occupiedWalls } = data;
-        console.log(player_id)
+
         db.run('UPDATE Games SET ' + (player_id === 'player_1' ? 'player1_wall_count' : 'player2_wall_count') + ' = ?, occupied_walls = ? WHERE game_id = ?', [wallCount, occupiedWalls, game_id], function (err) {
             if (err) {
                 console.error('Error updating wall count and occupied walls:', err);
@@ -404,6 +415,27 @@ io.on('connection', (socket) => {
                 });
             });
         });
+    });
+
+    socket.on('current-player', (data) => {
+        const currentPlayer = data.current_player;
+        const socketId = data.socketId;
+        const gameId = data.gameId;
+        const player1Id = gameClients[gameId].find((client) => client.playerId === 'player_1').socket.id;
+        const player2Id = gameClients[gameId].find((client) => client.playerId === 'player_2').socket.id;
+    
+        if (socketId === player1Id) {
+            if (currentPlayer === 'player_1') {
+                // Send turn_update to player 2 and turn_disable to player 1
+                io.to(player1Id).emit('turn_update', { current_turn: currentPlayer });
+                io.to(player2Id).emit('turn_disable', { current_turn: currentPlayer });
+            }
+            else if (currentPlayer === 'player_2') {
+                // Send turn_update to player 1 and turn_disable to player 2
+                io.to(player1Id).emit('turn_disable', { current_turn: currentPlayer });
+                io.to(player2Id).emit('turn_update', { current_turn: currentPlayer });
+            }
+        }
     });
 }); 
 

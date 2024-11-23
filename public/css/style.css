@@ -7,31 +7,25 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #000;
-  overflow: hidden; /* Prevent scrollbars */
 }
 
 h1 {
-  font-size: 60px; /* Font size for the heading */
-  color: #0ff; /* Bright cyan color */
-  text-shadow: 0 0 15px #0ff, 0 0 30px #0ff; /* Increased glow */
-  margin: 20px 0; /* Margin above and below the heading */
-  text-align: left; /* Align the heading to the left */
-  width: 100%; /* Full width to push it to the left */
-  padding-left: 20px; /* Add padding to the left */
+  font-size: 6vh;
+  color: #0ff;
+  text-shadow: 0 0 15px #0ff, 0 0 30px #0ff;
+  position: absolute;
+  top: 2vh;
+  left: 2vw;
 }
 
 .game-container {
   display: flex; /* Use flexbox for the container */
   align-items: flex-start; /* Align items at the start */
-  height: 65vh; /* Adjust based on your heading size and button container */
-  margin-top: -20px; /* Move up by 20px */
-  
 }
 
 .board {
   display: flex;
   flex-direction: column;
-  margin-right: 20px; /* Space between the board and player indicators */
   background-color: #00bfff; /* Cyan background for the board */
 }
 
@@ -116,7 +110,7 @@ h1 {
 }
 
 .turn-indicator {
-  font-size: 40px; /* Adjust as needed */
+  font-size: 40px;
   margin-bottom: 10px; /* Space between indicators */
   display: flex; /* Use flexbox for layout */
   flex-direction: column; /* Stack items horizontally */
@@ -250,6 +244,127 @@ h1 {
   top: 20px;
   right: 20px; 
 }
+
 #back-to-menu:hover {
   background-color: rgb(0, 150, 0);
+}
+
+/* Phone */
+@media screen and (min-width: 320px) and (max-width: 640px) {
+
+  h1 {
+    font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+    position: absolute;
+    top: calc(15vh - 100 * (100vw - 320px) / (640 - 320) - 3vh);
+    left: 50vw;
+    transform: translateX(-50%);
+  }
+  
+  .game-container {
+    width: auto;
+    height: auto;
+  }
+
+  .board{
+    width: auto;
+    height: auto;
+    position: relative;
+  }
+
+  .row {
+    width: auto;
+    height: auto;
+  }
+  
+  .cell {
+    width: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+  }
+  
+  .gap.vertical {
+    width: 6px;
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+  }
+  
+  .gap.horizontal {
+    width: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    height: 6px;
+  }
+  
+  .gap.cross {
+    width: 6px;
+    height: 6px; /* No scaling needed for cross gap */
+  }
+
+  .player-marker{
+    width: calc(20px + (26 - 20) * (100vw - 320px) / (640 - 320));
+    height: calc(20px + (26 - 20) * (100vw - 320px) / (640 - 320));
+  }
+
+  #back-to-menu {
+    position: absolute;
+    top: 2vh;
+    right: 3vw;
+    width: calc(120px + (150 - 120) * (100vw - 320px) / (640 - 320));
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    font-size: calc(16px + (20 - 18) * (100vw - 320px) / (640 - 320));
+  }
+}
+
+/* Tablet */
+@media screen and (min-width: 641px) and (max-width: 1007px) {
+  h1 {
+    font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
+    position: absolute;
+    top: -1vh; /* Fixed position, no scaling */
+    left: 50vw;
+    transform: translateX(-50%);
+  }  
+  
+  .game-container {
+    width: auto;
+    height: auto;
+  }
+  .board{
+    width: auto;
+    height: auto;
+    margin-top: calc(50px + (80 * (100vw - 641px) / (1007 - 641)));
+  }
+  .row {
+    width: auto;
+    height: auto;
+  }
+  
+  .cell {
+    width: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+    height: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+  }
+  
+  .gap.vertical {
+    width: 8px;
+    height: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+  }
+  
+  .gap.horizontal {
+    width: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+    height: 8px;
+  }
+  
+  .gap.cross {
+    width: 8px;
+    height: 8px;
+  }
+
+  .player-marker{
+    width: calc(35px + (30 - 26) * (100vw - 641px) / (1007 - 641));
+    height: calc(35px + (30 - 26) * (100vw - 641px) / (1007 - 641));
+  }
+
+  #back-to-menu {
+    width: calc(150px + (30 * (100vw - 641px) / 366)); 
+    height: calc(40px + (10 * (100vw - 641px) / 366)); 
+    font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
+    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
+  }
+  
 }

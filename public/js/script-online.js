@@ -10,14 +10,17 @@ let currentlyShownGaps = [];
 let player1WallCount;
 let player2WallCount;
 let occupiedWalls;
-let player1TimerValue = 300;
-let player2TimerValue = 300;
-let timerInterval;
+// let player1TimerValue = 300;
+// let player2TimerValue = 300;
+// let timerInterval;
 
-const currentGameId = new URLSearchParams(window.location.search).get('room');
-console.log('currentGameId:', currentGameId);
+const urlParams = new URLSearchParams(window.location.search);
+const currentGameId = urlParams.get('room');
+const playerId = urlParams.get('playerId');
 
-socket.on('connect', () => {
+socket.emit('update-socket-id', { gameId: currentGameId, playerId: playerId});
+
+socket.on('connect', () => {-
     console.log('Connected to the server!');
 });
 
@@ -72,6 +75,7 @@ function fetchCurrentTurn() {
 // }
 
 socket.on('turn_disable', (data) => {
+    console.log("Turn disabled")
     disableCellInteractions();
     removeHighlightValidMoves();
     if (data.current_turn === 'player_1') {
@@ -84,7 +88,7 @@ socket.on('turn_disable', (data) => {
 });
 
 socket.on('turn_update', (data) => {
-    console.log(data.current_turn)
+    console.log("Turn update")
     // Update the turn logic here
     if (data.current_turn === 'player_1') {
         currentPlayer = player1;
@@ -131,8 +135,6 @@ socket.on('opponent_move', (data) => {
     try {
         const { player_id, new_x, new_y } = data;
 
-        console.log(`Received opponent_move: ${player_id} moved to x = ${new_x}, y = ${new_y}`);
-
         let player;
         if (player_id === 'player_1') {
             player = player1;
@@ -145,10 +147,6 @@ socket.on('opponent_move', (data) => {
             const currentCell = document.getElementById(`cell-${player.position.x}-${player.position.y}`);
             const newCell = document.getElementById(`cell-${new_x}-${new_y}`);
 
-            // Log to see if the cells are being correctly identified
-            console.log(`Current cell: cell-${player.position.x}-${player.position.y}`);
-            console.log(`New cell: cell-${new_x}-${new_y}`);
-
             if (currentCell) {
             currentCell.innerHTML = ''; // Clear the old cell
             }
@@ -156,7 +154,6 @@ socket.on('opponent_move', (data) => {
             // Update the player position
             player.position.x = new_x;
             player.position.y = new_y;
-            console.log(player.position);
             if (newCell) {
                 const playerNumber = currentPlayer.id.split('_')[1];
                 newCell.innerHTML = `<div class="player-marker" id="marker${playerNumber}" style="background-color:${player.color}; transform: translate(-50%, -50%);"></div>`;
@@ -192,24 +189,20 @@ socket.on('opponent_wall', (data) => {
         const gap = document.querySelector(`#${gapId}[data-gap-type="horizontal"]`);
         if (gap) {
             gap.classList.add('wall-placed');
-            console.log("Added horizontal");
         }
         const crossGap = document.querySelector(`#${gapId}[data-gap-type="cross"]`);
         if (crossGap) {
             crossGap.classList.add('wall-placed');
-            console.log("Added cross");
         }
     });
     occupiedWalls.vertical.forEach(gapId => {
         const gap = document.querySelector(`#${gapId}[data-gap-type="vertical"]`);
         if (gap) {
             gap.classList.add('wall-placed');
-            console.log("Added vertical");
         }
         const crossGap = document.querySelector(`#${gapId}[data-gap-type="cross"]`);
         if (crossGap) {
             crossGap.classList.add('wall-placed');
-            console.log("Added cross");
         }
     });
 });
@@ -256,7 +249,6 @@ async function handleCellClick(event) {
         
         // Move the player locally on the board
         movePlayer(currentPlayer, newX, newY);
-        console.log(currentPlayer.id)
         // Emit the updated move to the server
         socket.emit('player_move', {
             game_id: currentGameId,
@@ -310,8 +302,8 @@ function highlightCurrentPlayer() {
     player1WallCountDisplay.classList.remove('active');
     player2WallCountDisplay.classList.remove('active');
 
-    player1Timer.classList.remove('active');
-    player2Timer.classList.remove('active');
+    // player1Timer.classList.remove('active');
+    // player2Timer.classList.remove('active');
 
     // Update wall count displays
     player1WallCountDisplay.innerText = `Walls: ${player1WallCount}`;
@@ -845,7 +837,6 @@ async function placeWall(event) {
     } else {
         player2WallCount--;
     }
-    console.log(occupiedWalls);
     // Emit the wall placement event to update the database
     socket.emit('wall_placed', {
         game_id: currentGameId,
@@ -970,10 +961,21 @@ function showWarning(...messages) {
 }
 
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    location.replace('menu.html'); // Replaces game.html in the history stack
+    if (confirm("Are you sure you want to quit the game?")) {
+        const winnerId = playerId === player1.id ? player2.id : player1.id;
+        socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
+        location.replace('menu.html');
+    }
 });
 
+let gameInitialized = false;  // Flag to track if the game has been initialized
+
 async function initializeGame() {
+    if (gameInitialized) {
+        console.log("Game already initialized. Skipping re-initialization.");
+        return;  // Exit if already initialized
+    }
+
     try {
         // Emit the get-initial-data event
         socket.emit('get-initial-data', { game_id: currentGameId });
@@ -987,22 +989,14 @@ async function initializeGame() {
                     player1 = new Player(data.players[0].player_id, data.players[0].x, data.players[0].y, data.players[0].color);
                     player2 = new Player(data.players[1].player_id, data.players[1].x, data.players[1].y, data.players[1].color);
 
-                    console.log('Player 1:', player1);
-                    console.log('Player 2:', player2);
-
                     player1WallCount = data.players[0].wall_count;
                     player2WallCount = data.players[1].wall_count;
-
-                    console.log('Player 1 Wall Count:', player1WallCount);
-                    console.log('Player 2 Wall Count:', player2WallCount);
 
                     // Ensure horizontal and vertical are arrays before using them in Sets
                     occupiedWalls = {
                         horizontal: new Set(Array.isArray(data.occupiedWalls.horizontal) ? data.occupiedWalls.horizontal : []),
                         vertical: new Set(Array.isArray(data.occupiedWalls.vertical) ? data.occupiedWalls.vertical : [])
                     };
-
-                    console.log('Occupied Walls:', occupiedWalls);
 
                     resolve();  // Resolve the promise once player data and occupied walls are fully processed
                 } else {
@@ -1014,10 +1008,13 @@ async function initializeGame() {
         // Now that player data is processed, fetch the current turn
         currentPlayer = await fetchCurrentTurn();
         console.log("Initial currentPlayer:", currentPlayer);
-
+        console.log(socket.id)
+        // Emit the current player to the server to call turn_disable and turn_update
+        socket.emit('current-player', { current_player: currentPlayer.id, gameId: currentGameId, socketId: socket.id });
         // Initialize the board and other game components
         initBoard();
         initGaps();
+        gameInitialized = true
     } catch (error) {
         console.error("Failed to initialize game:", error);
     }
@@ -1027,3 +1024,12 @@ async function initializeGame() {
 window.onload = () => {
     initializeGame();
 };
+
+window.addEventListener('beforeunload', function(event) {
+    if (confirm("Are you sure you want to quit the game?")) {
+        const winnerId = playerId === player1.id ? player2.id : player1.id;
+        socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
+    } else {
+        event.preventDefault();
+    }
+});
