@@ -1,8 +1,10 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
+/* Global Reset */
+html, body {
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    height: 100%; /* Ensure full height for body and html */
+    width: 100%; /* Ensure full width */
+    overflow: hidden; /* Prevent any accidental scrollbars */
 }
 
 .menu-container {
@@ -54,11 +56,11 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto;
 }
 
 .instruction-text {
@@ -137,6 +139,7 @@ figcaption {
     text-align: center;
     font-style: italic;
 }
+
 figure {
     width: 40%;
     height: 100%;
@@ -358,4 +361,356 @@ figure {
 
 #join-room-button:hover {
     background-color: blue;
+}
+
+/* Phone */
+@media screen and (min-width: 320px) and (max-width: 640px) {
+    .menu-container {
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        background-size: cover; /* Ensure background fills the container */
+        background-position: center; /* Center the background image */
+    }
+
+    .game-title {
+        font-size: calc(80px + 40 * (100vw - 320px) / (640 - 320));
+        margin-bottom: 100px;
+    }
+
+    .instruction-button, .play-button {
+        width: calc(300px + 100 * (100vw - 320px) / (640 - 320));
+        height: 80px;
+        font-size: 30px;
+    }
+
+    .close-button {
+        width: calc(80px + 100 * (100vw - 320px) / (640 - 320));
+        height: calc(30px + 10 * (100vw - 320px) / (640 - 320));
+        font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+    }
+
+    .play-overlay .play-text h2{
+        font-size: calc(40px + 10 * (100vw - 320px) / (640 - 320));
+        width: 100vw;
+    }
+
+    .play-overlay .play-text .desc{
+        margin-top: 0px;
+    }
+
+    .play-overlay .play-options {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .play-overlay .play-options button {
+        width: calc(250px + 100 * (100vw - 320px) / (640 - 320));
+        font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .online-branch {
+        position: absolute;
+        width: calc(250px + 100 * (100vw - 320px) / (640 - 320));
+        left: 50vw;
+        transform: translateX(-50%);
+    }
+
+    .play-overlay .play-options .online-branch button {
+        width: 100%;
+        font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .instruction-overlay .instruction-text {
+        width: 100%;
+        text-align: center;
+        position: absolute;
+        top: 7vh;
+    }
+    
+    .instruction-overlay .instruction-text h2 {
+        font-size: calc(24px + 10 * (100vw - 320px) / (640 - 320));
+        width: 100%;
+        margin: 0 auto 20px auto;
+        text-align: center;
+    }
+    
+    .instruction-overlay .instruction-text .desc {
+        font-size: calc(15px + 10 * (100vw - 320px) / (640 - 320));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        margin-top: 20px;
+        line-height: 1.5;
+    }
+
+    .instruction-overlay .instruction-text .desc a {
+        display: inline-block;
+    }
+    
+    .demo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0px 0px 30px 0px;
+        position: absolute;
+        top: calc(7vh + (53% + 100 * (100vw - 320px) / (640 - 320)));
+    }
+    
+    .demo img {
+        width: 80%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+    }
+    
+    .demo video {
+        display: block;
+        width: 80%; 
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        margin: 0 auto;
+    }
+    
+    figcaption {
+        margin-top: 10px;
+        font-size: calc(15px + 10 * (100vw - 320px) / (640 - 320));
+    }
+    
+    figure {
+        width: 100%; /* Make figure container full width */
+        margin: 0;
+    }
+
+    .create-room-overlay h2 {
+        font-size: calc(50px + 10 * (100vw - 320px) / (640 - 320));
+        width: 100vw;
+        text-align: center;
+    }
+
+    #game-code-text{
+        font-size: calc(30px + 10 * (100vw - 320px) / (640 - 320));
+        margin-left: 10px;
+    }
+
+    #copy-code-button{
+        font-size: calc(30px + 10 * (100vw - 320px) / (640 - 320));
+    }
+
+    .create-room-overlay p:nth-of-type(n+2) {
+        font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        text-align: left;
+    }
+
+    .join-room-overlay h2{
+        font-size: calc(50px + 10 * (100vw - 320px) / (640 - 320));
+        width: 100vw;
+        text-align: center;
+    }
+
+    #join-room-code {
+        font-size: calc(30px + 10 * (100vw - 320px) / (640 - 320));
+        margin-left: 10px;
+        width: calc(150px + 100 * (100vw - 320px) / (640 - 320));
+    }
+
+    .join-room-overlay p {
+        text-align: center;
+    }
+
+    .join-room-overlay p:nth-of-type(n+2) {
+        font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+}
+
+/* Tablet */
+@media screen and (min-width: 641px) and (max-width: 1007px) {
+    .menu-container {
+        width: 100vw; /* Full viewport width */
+        height: 100vh; /* Full viewport height */
+        background-size: cover; /* Ensure background fills the container */
+        background-position: center; /* Center the background image */
+    }
+
+    .game-title {
+        font-size: calc(100px + 40 * (100vw - 641px) / (1007 - 641));
+        margin-bottom: 100px;
+    }
+
+    .instruction-button, .play-button {
+        width: calc(600px + 100 * (100vw - 641px) / (1007 - 641));
+        height: 80px;
+        font-size: 30px;
+    }
+
+    .close-button {
+        width: calc(140px + 100 * (100vw - 641px) / (1007 - 641));
+        height: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
+        font-size: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+    }
+
+    .play-overlay .play-text h2{
+        font-size: calc(60px + 50 * (100vw - 641px) / (1007 - 641));
+        width: 100vw;
+    }
+
+    .play-overlay .play-text .desc{
+        margin-top: 0px;
+    }
+
+    .play-overlay .play-options {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .play-overlay .play-options button {
+        width: calc(450px + 100 * (100vw - 641px) / (1007 - 641));
+        font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .online-branch {
+        position: absolute;
+        width: calc(450px + 100 * (100vw - 641px) / (1007 - 641));
+        left: 50vw;
+        transform: translateX(-50%);
+    }
+
+    .play-overlay .play-options .online-branch button {
+        width: 100%;
+        font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .instruction-overlay .instruction-text {
+        width: 100%;
+        text-align: center;
+        position: absolute;
+        top: 7vh;
+    }
+    
+    .instruction-overlay .instruction-text h2 {
+        font-size: calc(50px + 10 * (100vw - 641px) / (1007 - 641));
+        width: 100%;
+        margin: 0 auto 20px auto;
+        text-align: center;
+    }
+    
+    .instruction-overlay .instruction-text .desc {
+        font-size: calc(25px + 10 * (100vw - 641px) / (1007 - 641));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        margin-top: 20px;
+        line-height: 1.5;
+    }
+
+    .instruction-overlay .instruction-text .desc a {
+        display: inline-block;
+    }
+    
+    .demo {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0px 0px 30px 0px;
+        position: absolute;
+        top: calc(30vh + (53% + 100 * (100vw - 641px) / (1007 - 641)));
+    }
+    
+    .demo img {
+        width: 80%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+    }
+    
+    .demo video {
+        display: block;
+        width: 80%; 
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        margin: 0 auto;
+    }
+    
+    figcaption {
+        margin-top: 10px;
+        font-size: calc(25px + 10 * (100vw - 641px) / (1007 - 641));
+    }
+    
+    figure {
+        width: 100%; /* Make figure container full width */
+        margin: 0;
+    }
+
+    .create-room-overlay h2 {
+        font-size: calc(50px + 10 * (100vw - 641px) / (1007 - 641));
+        width: 100vw;
+        text-align: center;
+    }
+
+    #game-code-text{
+        font-size: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+        margin-left: 10px;
+    }
+
+    #copy-code-button{
+        font-size: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+    }
+
+    .create-room-overlay p:nth-of-type(n+2) {
+        font-size: calc(20px + 10 * (100vw - 641px) / (1007 - 641));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        text-align: left;
+    }
+
+    .join-room-overlay h2{
+        font-size: calc(50px + 10 * (100vw - 641px) / (1007 - 641));
+        width: 100vw;
+        text-align: center;
+    }
+
+    #join-room-code {
+        font-size: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+        margin-left: 10px;
+        width: calc(150px + 100 * (100vw - 641px) / (1007 - 641));
+    }
+
+    .join-room-overlay p {
+        text-align: center;
+    }
+
+    .join-room-overlay p:nth-of-type(n+2) {
+        font-size: calc(20px + 10 * (100vw - 641px) / (1007 - 641));
+        width: auto;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
 }

@@ -256,10 +256,75 @@ h1 {
   text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
 } */
 
-@media screen and (max-width: 768px) {
+/* Phone */
+@media screen and (min-width: 320px) and (max-width: 640px) {
+
   h1 {
-    font-size: 30px;
+    font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
+    float: left;
+    top: calc(5vh + 50 * (100vw - 320px) / (640 - 320));
+  }  
+  
+  .game-container {
+    width: auto;
+    height: auto;
   }
+
+  .board{
+    width: auto;
+    height: auto;
+  }
+
+  .row {
+    width: auto;
+    height: auto;
+  }
+  
+  .cell {
+    width: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+  }
+  
+  .gap.vertical {
+    width: 6px;
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+  }
+  
+  .gap.horizontal {
+    width: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    height: 6px;
+  }
+  
+  .gap.cross {
+    width: 6px;
+    height: 6px; /* No scaling needed for cross gap */
+  }
+
+  .player-marker{
+    width: calc(20px + (26 - 20) * (100vw - 320px) / (640 - 320));
+    height: calc(20px + (26 - 20) * (100vw - 320px) / (640 - 320));
+  }
+
+  #back-to-menu {
+    position: absolute;
+    top: 2vh;
+    right: 3vw;
+    width: calc(120px + (150 - 120) * (100vw - 320px) / (640 - 320));
+    height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
+    font-size: calc(16px + (20 - 18) * (100vw - 320px) / (640 - 320));
+  }
+}
+
+/* Tablet */
+@media screen and (min-width: 641px) and (max-width: 1007px) {
+  h1 {
+    font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
+    position: absolute;
+    top: -1vh; /* Fixed position, no scaling */
+    left: 50vw;
+    transform: translateX(-50%);
+  }  
+  
   .game-container {
     width: auto;
     height: auto;
@@ -267,42 +332,61 @@ h1 {
   .board{
     width: auto;
     height: auto;
+    margin-top: calc(50px + (80 * (100vw - 641px) / (1007 - 641)));
   }
   .row {
     width: auto;
     height: auto;
   }
+  
   .cell {
-    width: 40px;
-    height: 40px; /* Reduce the cell size for smaller screens */
+    width: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+    height: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
   }
+  
   .gap.vertical {
-    width: 4px;
-    height: 40px; /* Matches the effective height of each cell */
+    width: 8px;
+    height: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
   }
   
   .gap.horizontal {
-    width: 40px; /* Matches the effective width of each cell */
-    height: 4px;
+    width: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
+    height: 8px;
   }
   
   .gap.cross {
-    width: 4px;
-    height: 4px;
+    width: 8px;
+    height: 8px;
   }
+
   .player-marker{
-    width: 26px;
-    height: 26px;
+    width: calc(35px + (30 - 26) * (100vw - 641px) / (1007 - 641));
+    height: calc(35px + (30 - 26) * (100vw - 641px) / (1007 - 641));
   }
 
   #back-to-menu {
-    width: 150px;
-    height: 40px;
-    font-size: 20px;
-    top: 30px;
-  }
+    width: calc(150px + (30 * (100vw - 641px) / 366)); 
+    height: calc(40px + (10 * (100vw - 641px) / 366)); 
+    font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
+    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
+  } 
 }
 
-@media screen {
-  
+@media screen and (min-width: 1008px) and (max-width: 1920px) { 
+  .game-container {
+    width: auto;
+    height: auto;
+  }
+  .board{
+    width: auto;
+    height: auto;
+    margin-top: calc(50px + (80 * (100vw - 1008px) / (1920 - 1008)));
+  }
+
+  #back-to-menu {
+    width: calc(150px + (30 * (100vw - 641px) / 366)); 
+    height: calc(40px + (10 * (100vw - 641px) / 366)); 
+    font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
+    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
+  } 
 }
