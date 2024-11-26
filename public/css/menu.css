@@ -52,7 +52,7 @@ html, body {
     display: none;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     position: fixed;
     top: 0;
     left: 0;
@@ -78,6 +78,12 @@ html, body {
 .instruction-overlay.show, .play-overlay.show {
     display: flex;
     background-color: rgba(255, 255, 255, 0.9); /* Add a dark background color to the overlay */
+}
+
+.instruction-overlay .instruction-text {
+    width: 100%;
+    text-align: center;
+    margin-top: 5vh;
 }
 
 .instruction-overlay h2 {
@@ -118,7 +124,9 @@ html, body {
 
 .demo {
     display: flex;
+    flex-direction: row;
     justify-content: space-around;
+    align-items: stretch;
     margin: 20px 0;
 }
 
@@ -126,10 +134,13 @@ html, body {
     width: 40%;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    height: 100%; /* Match the height of the tallest element */
 }
 
 .demo video {
     width: 100%;
+    height: 100%;
+    object-fit: fill;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
@@ -138,12 +149,12 @@ figcaption {
     display: block;
     text-align: center;
     font-style: italic;
+    font-size: 35px; 
 }
 
 figure {
     width: 40%;
-    height: 100%;
-    margin: 0 0 0 0;
+    margin: 0;
 }
 
 .desc a {
@@ -168,6 +179,7 @@ figure {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     display: none;
+    overflow-y: auto;
 }
 
 .play-overlay .play-text {
@@ -303,6 +315,7 @@ figure {
     font-size: 30px;
     margin: 20px 0px;
     color: black;
+    text-align: center;
 }
 
 .create-room-overlay h2 {
@@ -366,14 +379,14 @@ figure {
 /* Phone */
 @media screen and (min-width: 320px) and (max-width: 640px) {
     .menu-container {
-        width: 100vw; /* Full viewport width */
-        height: 100vh; /* Full viewport height */
+        width: 100%; /* Full viewport width */
+        height: 100%; /* Full viewport height */
         background-size: cover; /* Ensure background fills the container */
         background-position: center; /* Center the background image */
     }
 
     .game-title {
-        font-size: calc(80px + 40 * (100vw - 320px) / (640 - 320));
+        font-size: calc(75px + 40 * (100vw - 320px) / (640 - 320));
         margin-bottom: 100px;
     }
 
@@ -429,8 +442,7 @@ figure {
     .instruction-overlay .instruction-text {
         width: 100%;
         text-align: center;
-        position: absolute;
-        top: 7vh;
+        margin-top: 7vh;
     }
     
     .instruction-overlay .instruction-text h2 {
@@ -457,37 +469,37 @@ figure {
     .demo {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
-        margin: 0px 0px 30px 0px;
-        position: absolute;
-        top: calc(7vh + (53% + 100 * (100vw - 320px) / (640 - 320)));
+        gap: 20px;
+        margin: 20px 0;
     }
     
-    .demo img {
-        width: 80%;
-        height: auto;
+    .demo img, 
+    .demo video, 
+    .demo figure {
+        width: 90%;
+        max-width: 600px;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        margin-bottom: 30px;
     }
     
-    .demo video {
-        display: block;
-        width: 80%; 
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        margin: 0 auto;
-    }
-    
-    figcaption {
-        margin-top: 10px;
-        font-size: calc(15px + 10 * (100vw - 320px) / (640 - 320));
-    }
-    
-    figure {
-        width: 100%; /* Make figure container full width */
+    .demo figure {
         margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .demo figure video {
+        width: 100%;
+        height: auto;
+    }
+    
+    .demo figcaption {
+        margin-top: 10px;
+        font-size: calc(15px + 10 * (100vw - 320px) / (640 - 320)); 
+        text-align: center;
     }
 
     .create-room-overlay h2 {
@@ -542,8 +554,8 @@ figure {
 /* Tablet */
 @media screen and (min-width: 641px) and (max-width: 1007px) {
     .menu-container {
-        width: 100vw; /* Full viewport width */
-        height: 100vh; /* Full viewport height */
+        width: 100%;
+        height: 100%;
         background-size: cover; /* Ensure background fills the container */
         background-position: center; /* Center the background image */
     }
@@ -560,9 +572,9 @@ figure {
     }
 
     .close-button {
-        width: calc(140px + 100 * (100vw - 641px) / (1007 - 641));
-        height: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
-        font-size: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+        width: calc(120px + 100 * (100vw - 641px) / (1007 - 641));
+        height: calc(30px + 10 * (100vw - 641px) / (1007 - 641));
+        font-size: calc(25px + 10 * (100vw - 641px) / (1007 - 641));
     }
 
     .play-overlay .play-text h2{
@@ -605,8 +617,7 @@ figure {
     .instruction-overlay .instruction-text {
         width: 100%;
         text-align: center;
-        position: absolute;
-        top: 7vh;
+        margin-top: 7vh;
     }
     
     .instruction-overlay .instruction-text h2 {
@@ -633,39 +644,39 @@ figure {
     .demo {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: center;
-        margin: 0px 0px 30px 0px;
-        position: absolute;
-        top: calc(30vh + (53% + 100 * (100vw - 641px) / (1007 - 641)));
+        gap: 20px;
+        margin: 20px 0;
     }
     
-    .demo img {
-        width: 80%;
-        height: auto;
+    .demo img, 
+    .demo video, 
+    .demo figure {
+        width: 90%;
+        max-width: 600px;
         border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        margin-bottom: 30px;
     }
     
-    .demo video {
-        display: block;
-        width: 80%; 
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        margin: 0 auto;
-    }
-    
-    figcaption {
-        margin-top: 10px;
-        font-size: calc(25px + 10 * (100vw - 641px) / (1007 - 641));
-    }
-    
-    figure {
-        width: 100%; /* Make figure container full width */
+    .demo figure {
         margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
-
+    
+    .demo figure video {
+        width: 100%;
+        height: auto;
+    }
+    
+    .demo figcaption {
+        margin-top: 10px;
+        font-size: calc(25px + 10 * (100vw - 320px) / (640 - 320)); 
+        text-align: center;
+    }
+    
     .create-room-overlay h2 {
         font-size: calc(50px + 10 * (100vw - 641px) / (1007 - 641));
         width: 100vw;
@@ -683,11 +694,11 @@ figure {
 
     .create-room-overlay p:nth-of-type(n+2) {
         font-size: calc(20px + 10 * (100vw - 641px) / (1007 - 641));
-        width: auto;
+        width: 100%;
         word-wrap: break-word;
         overflow-wrap: break-word;
         white-space: normal;
-        text-align: left;
+        text-align: center;
     }
 
     .join-room-overlay h2{

@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="game-container">
-    <h1>Quoridor Game</h1>
+        <h1>Quoridor Game</h1>
         <div class="board">
             <!-- 9x9 Grid for the board with manual cells -->
             <!-- Row 0 -->
@@ -354,19 +354,19 @@
                 <div class="cell" id="cell-8-8"></div>
             </div>
         </div>
-    </div>
-    <div class="turn-indicator">
-        <div class="indicator-row">
-            <div id="player1-indicator">Player 1</div>
-            <div id="player1-wall-count" class="wall-count">Walls: 3</div>
+        <div class="turn-indicator">
+            <div class="indicator-row">
+                <div id="player1-indicator">Player 1</div>
+                <div id="player1-wall-count" class="wall-count">Walls: 3</div>
+            </div>
+            <div class="indicator-row">
+                <div id="player2-indicator">Player 2</div>
+                <div id="player2-wall-count" class="wall-count">Walls: 2</div>
+            </div>
+        </div> 
+        <div class="button-container">    
+            <button id="reset-button">Reset Game</button>    
         </div>
-        <div class="indicator-row">
-            <div id="player2-indicator">Player 2</div>
-            <div id="player2-wall-count" class="wall-count">Walls: 2</div>
-        </div>
-    </div> 
-    <div class="button-container">    
-        <button id="reset-button">Reset Game</button>    
     </div>
     <button id="back-to-menu">Back to Menu</button>
     <script type="module" src="js/Player.js"></script>

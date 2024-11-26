@@ -1,6 +1,6 @@
 body {
   display: flex;
-  flex-direction: column; /* Align items in a column */
+  flex-direction: column; 
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -12,16 +12,17 @@ body {
 h1 {
   color: #0ff;
   text-shadow: 0 0 15px #0ff, 0 0 30px #0ff;
-  position: absolute;
   font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
-  top: -1vh; /* Fixed position, no scaling */
-  transform: translateX(-50%);
-  left: 50vw;
+  width: 100%;
+  text-align: center;
+  margin-top: 10vh;
 }
 
 .game-container {
   display: flex; /* Use flexbox for the container */
-  align-items: flex-start; /* Align items at the start */
+  align-items: center;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .board {
@@ -39,7 +40,7 @@ h1 {
   height: 60px;
   background-color: #222; /* Darker background for cells */
   border: 2px solid #00bfff; /* Neon blue border */
-  box-sizing: border-box; /* Ensures border is included in total width/height */
+  box-sizing: border-box;
   position: relative;
   transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
 }
@@ -100,10 +101,10 @@ h1 {
   width: 100%; /* Full cell size */
   height: 100%; /* Full cell size */
   background-color: rgba(0, 0, 255, 0.3); /* Semi-transparent blue */
-  border-radius: 50%; /* Circular shape */
+  border-radius: 50%;
   filter: blur(8px); /* Blur effect */
   pointer-events: none; /* Ensure it doesn't block clicks */
-  z-index: 1; /* Ensure it's on top of the cell */
+  z-index: 1; 
 }
 
 .shadowy {
@@ -112,15 +113,15 @@ h1 {
 
 .turn-indicator {
   font-size: 40px;
-  margin-bottom: 10px; /* Space between indicators */
-  display: flex; /* Use flexbox for layout */
-  flex-direction: column; /* Stack items horizontally */
-  align-items: flex-start; /* Center indicators horizontally */
+  margin-bottom: 10px;
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start;
 }
 
 .indicator-row {
-  display: flex; /* Row for player indicator and wall count */
-  align-items: center; /* Center items vertically */
+  display: flex;
+  align-items: center;
 }
 
 #player1-indicator {
@@ -162,7 +163,7 @@ h1 {
 }
 
 .wall-count {
-  font-size: 24px; /* Adjust size as needed */
+  font-size: 24px; 
   font-weight: bold;
   color: #0ff; /* Bright cyan color for visibility */
   margin-left: 10px; /* Space between the player name and wall count */
@@ -180,34 +181,33 @@ h1 {
 }
 
 .wall-preview {
-  background-color: #E23F44; /* or any other style you want to apply */
+  background-color: #E23F44;
 }
 
 /* Button Container */
 .button-container {
-  display: flex; /* Center the button */
-  justify-content: center; /* Center button horizontally */
-  margin-top: 20px; /* Space above the button */
+  display: flex;
+  justify-content: center;
+  margin-top: 20px; 
 }
 
 /* Reset Button Styles */
 #reset-button {
-  background-color: #ff00ff; /* Bright pink background */
-  color: white; /* White text */
-  padding: 10px 20px; /* Padding around the text */
-  border: none; /* Remove border */
-  border-radius: 5px; /* Rounded corners */
-  cursor: pointer; /* Pointer cursor on hover */
-  font-size: 16px; /* Font size */
-  box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; /* Glow effect */
+  background-color: #ff00ff; 
+  color: white;
+  padding: 10px 20px; 
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  font-size: 16px; 
+  box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff; 
   transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Smooth transition */
 }
 
-/* Button Hover Effect */
 #reset-button:hover {
-  background-color: #ff80ff; /* Lighter pink on hover */
-  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff; /* Stronger glow on hover */
-  transform: scale(1.05); /* Scale up slightly on hover */
+  background-color: #ff80ff; 
+  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff; 
+  transform: scale(1.05);
 }
 
 /* Button Active Effect */
@@ -216,24 +216,25 @@ h1 {
 }
 
 .warning-box {
-  position: fixed; /* Fixed positioning to keep it at the original place */
-  top: 20px; /* Starting position */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, 0); /* Adjust for centering */
-  background-color: #ffcc00; /* Yellow background */
-  color: #000; /* Black text */
+  text-align: center;
+  position: fixed; 
+  top: 20px; 
+  left: 50%;
+  transform: translate(-50%, 0); 
+  background-color: #ffcc00;
+  color: #000; 
   padding: 10px 20px;
   border-radius: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1000; /* Ensure it appears on top of other content */
+  z-index: 1000; 
   opacity: 1;
-  transition: opacity 0.5s ease, top 0.5s ease; /* Smooth fade and top transition */
-  font-size: 16px; /* Adjust font size as needed */
+  transition: opacity 0.5s ease, top 0.5s ease; 
+  font-size: 20px;
 }
 
 #back-to-menu {
-  width: 200px;
-  height: 50px;
+  width: 150px;
+  height: 40px;
   font-size: 24px;
   background-color: rgb(10, 200, 10);
   color: #fff;
@@ -255,24 +256,8 @@ h1 {
 
   h1 {
     font-size: calc(20px + 10 * (100vw - 320px) / (640 - 320));
-    float: left;
-    top: calc(5vh + 50 * (100vw - 320px) / (640 - 320));
+    margin-top: 5vh;
   }  
-  
-  .game-container {
-    width: auto;
-    height: auto;
-  }
-
-  .board{
-    width: auto;
-    height: auto;
-  }
-
-  .row {
-    width: auto;
-    height: auto;
-  }
   
   .cell {
     width: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
@@ -291,7 +276,7 @@ h1 {
   
   .gap.cross {
     width: 6px;
-    height: 6px; /* No scaling needed for cross gap */
+    height: 6px;
   }
 
   .player-marker{
@@ -300,12 +285,12 @@ h1 {
   }
 
   #back-to-menu {
-    position: absolute;
-    top: 2vh;
-    right: 3vw;
     width: calc(120px + (150 - 120) * (100vw - 320px) / (640 - 320));
     height: calc(30px + (40 - 30) * (100vw - 320px) / (640 - 320));
     font-size: calc(16px + (20 - 18) * (100vw - 320px) / (640 - 320));
+  }
+  .warning-box {
+    font-size: calc(14px + (16 - 12) * (100vw - 320px) / (640 - 320));
   }
 }
 
@@ -313,25 +298,8 @@ h1 {
 @media screen and (min-width: 641px) and (max-width: 1007px) {
   h1 {
     font-size: calc(40px + 10 * (100vw - 641px) / (1007 - 641));
-    position: absolute;
-    top: -1vh; /* Fixed position, no scaling */
-    left: 50vw;
-    transform: translateX(-50%);
+    margin-top: 25vh;
   }  
-  
-  .game-container {
-    width: auto;
-    height: auto;
-  }
-  .board{
-    width: auto;
-    height: auto;
-    margin-top: calc(50px + (80 * (100vw - 641px) / (1007 - 641)));
-  }
-  .row {
-    width: auto;
-    height: auto;
-  }
   
   .cell {
     width: calc(50px + (10 * (100vw - 641px) / (1007 - 641)));
@@ -362,21 +330,13 @@ h1 {
     width: calc(150px + (30 * (100vw - 641px) / 366)); 
     height: calc(40px + (10 * (100vw - 641px) / 366)); 
     font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
-    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
   } 
+  .warning-box {
+    font-size: calc(18px + (16 - 12) * (100vw - 320px) / (640 - 320));
+  }
 }
 
 @media screen and (min-width: 1008px) and (max-width: 1920px) { 
-  .game-container {
-    width: auto;
-    height: auto;
-  }
-  .board{
-    width: auto;
-    height: auto;
-    margin-top: calc(50px + (80 * (100vw - 1008px) / (1920 - 1008)));
-  }
-
   #back-to-menu {
     width: calc(150px + (30 * (100vw - 641px) / 366)); 
     height: calc(40px + (10 * (100vw - 641px) / 366)); 

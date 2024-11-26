@@ -735,16 +735,11 @@ function showWarning(...messages) {
     warningBox.innerText = messages.join(' '); // Join messages with a space
 
     // Calculate the top position for the new warning
-    const warningBoxHeight = 60; // Adjust this value for height of the warning box
-    const topPosition = 20 + (currentWarningCount * warningBoxHeight); // Set the position
+    const warningBoxHeight = 60; 
+    const topPosition = 20 + (currentWarningCount * warningBoxHeight); 
 
-    // Set style properties
-    warningBox.style.position = 'fixed';
-    warningBox.style.left = '50%'; // Center horizontally
-    warningBox.style.transform = 'translate(-50%, 0)'; // Adjust for centering
-    warningBox.style.top = `${topPosition}px`; // Set top position
+    warningBox.style.top = `${topPosition}px`; 
 
-    // Increment the warning count
     currentWarningCount++;
 
     document.body.appendChild(warningBox);
@@ -753,8 +748,8 @@ function showWarning(...messages) {
         warningBox.style.opacity = 0; // Start fade-out
         setTimeout(() => {
             document.body.removeChild(warningBox);
-            currentWarningCount--; // Decrement when warning is removed
-        }, 500); // Match with CSS transition duration
+            currentWarningCount--; 
+        }, 500); 
     }, 2000);
 }
 
