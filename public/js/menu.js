@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const localPlay = document.getElementById("local-play");
     const createRoomOverlay = document.getElementById("create-room-overlay");
     const joinRoomOverlay = document.getElementById("join-room-overlay");
+    const onlinePlay = document.getElementById("online-play");
     let isMenuBlurred = false;
     // Track if the user has already navigated to game.html
     let isGameNavigated = false;
@@ -78,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    document.getElementById('online-play').addEventListener('click', function() {
+    onlinePlay.addEventListener('click', function() {
         document.querySelector('.online-branch').classList.toggle('show');
     });
 
@@ -234,5 +235,50 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     
+    // Function to handle online status change
+    function updateOnlineStatus() {
+        if (navigator.onLine) {
+            localStorage.setItem('onlineStatus', 'online');
+            onlinePlay.disabled = false;
+            onlinePlay.title = "Click to play online (Requires internet)";
+            onlinePlay.style.cursor = 'pointer'; // Change cursor to pointer
+        } else {
+            localStorage.setItem('onlineStatus', 'offline');
+            onlinePlay.disabled = true;
+            onlinePlay.title = "You must be online to play online games.";
+            onlinePlay.style.cursor = 'not-allowed'; // Change cursor to not-allowed
+        }
+    }
+
+    updateOnlineStatus()
+    // Event listeners for online/offline status
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    // Optional: Show a status indicator on the page
+    const statusIndicator = document.createElement('div');
+    statusIndicator.id = 'status-indicator';
+    statusIndicator.style.position = 'fixed';
+    statusIndicator.style.bottom = '10px';
+    statusIndicator.style.left = '10px';
+    statusIndicator.style.padding = '10px';
+    statusIndicator.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    statusIndicator.style.color = 'white';
+    statusIndicator.style.borderRadius = '5px';
+    statusIndicator.style.fontSize = '14px';
+    document.body.appendChild(statusIndicator);
+
+    function updateStatusIndicator() {
+        if (navigator.onLine) {
+            statusIndicator.textContent = "You are online.";
+            statusIndicator.style.backgroundColor = 'rgba(0, 128, 0, 0.7)'; // Green
+        } else {
+            statusIndicator.textContent = "You are offline.";
+            statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; // Red
+        }
+    }
+
+    updateStatusIndicator();
+    window.addEventListener('online', updateStatusIndicator);
+    window.addEventListener('offline', updateStatusIndicator);
 });
 

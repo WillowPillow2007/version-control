@@ -757,8 +757,20 @@ document.getElementById('back-to-menu').addEventListener('click', function() {
     location.replace('menu.html'); // Replaces game.html in the history stack
 });
 
-// Call initGaps to activate wall functionality
+
 window.onload = () => {
+    // Initialize the game board and gaps
     initBoard();
     initGaps();
+
+    // Register the Service Worker asynchronously
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch((error) => {
+                console.log('Service Worker registration failed:', error);
+            });
+    }
 };

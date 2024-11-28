@@ -224,38 +224,50 @@ io.on('connection', (socket) => {
         console.log(`Socket updated for player ${playerId} in game ${gameId}: ${newSocketId}`);
     });
 
-    // Set game over
+    // Handle 'game_over' event from the client (user clicks the button to end the game)
     socket.on('game_over', (data) => {
         const { gameId, winnerId } = data;  // Get the game ID and winner's player ID from the data
         const winnerNumber = winnerId.split('_')[1];
-        // Update the game state to 'done' in the database
-        db.run('UPDATE Games SET game_state = "done" WHERE game_id = ?', [gameId], function (err) {
+
+        // Check the game state in the database
+        db.get('SELECT game_state FROM Games WHERE game_id = ?', [gameId], (err, row) => {
             if (err) {
-                console.error('Error setting game state:', err);
+                console.error('Error fetching game state:', err);
                 return;
             }
 
-            console.log(`Game ${gameId} is now over.`);
-
-            // Create the game over message
-            const message = `Player ${winnerNumber} wins! The game is over.`;
-
-            io.emit('game_over', { message, playerId: winnerId });
-
-            // Redirect players to menu page after 5 seconds and delete the game row
-            setTimeout(() => {
-                io.emit('redirect_to_menu', { url: '/menu.html' });
-
-                // Delete the game row from the database
-                db.run('DELETE FROM Games WHERE game_id = ?', [gameId], function (err) {
+            if (row && row.game_state === 'in_progress') {
+                // Update the game state to 'done' in the database
+                db.run('UPDATE Games SET game_state = "done" WHERE game_id = ?', [gameId], function (err) {
                     if (err) {
-                        console.error('Error deleting game row:', err);
+                        console.error('Error setting game state:', err);
                         return;
                     }
 
-                    console.log(`Game row deleted from database.`);
+                    console.log(`Game ${gameId} is now over.`);
+
+                    // Create the game over message
+                    const message = `Player ${winnerNumber} wins! The game is over.`;
+
+                    // Emit game over event to all connected clients
+                    io.emit('game_over', { message, playerId: winnerId });
+
+                    // Redirect players to the menu page after 5 seconds and delete the game row from the database
+                    setTimeout(() => {
+                        io.emit('redirect_to_menu', { url: '/menu.html' });
+
+                        // Delete the game row from the database
+                        db.run('DELETE FROM Games WHERE game_id = ?', [gameId], function (err) {
+                            if (err) {
+                                console.error('Error deleting game row:', err);
+                                return;
+                            }
+
+                            console.log(`Game row deleted from database.`);
+                        });
+                    }, 5000);
                 });
-            }, 5000);
+            }
         });
     });
 

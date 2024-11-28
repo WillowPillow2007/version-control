@@ -25,7 +25,9 @@ socket.on('connect', () => {-
 });
 
 socket.on('disconnect', () => {
-    console.log('Disconnected from the server');
+    alert('You have been disconnected from the game.');
+    
+    location.replace('menu.html');
 });
 
 // Fetch the initial turn without switching it
@@ -78,11 +80,7 @@ socket.on('turn_disable', (data) => {
     console.log("Turn disabled")
     disableCellInteractions();
     removeHighlightValidMoves();
-    if (data.current_turn === 'player_1') {
-        currentPlayer = player1;
-    } else if (data.current_turn === 'player_2') {
-        currentPlayer = player2;
-    }
+    currentPlayer = data.current_turn === 'player_2' ? player2 : player1;
     highlightCurrentPlayer();
 
 });
@@ -90,11 +88,7 @@ socket.on('turn_disable', (data) => {
 socket.on('turn_update', (data) => {
     console.log("Turn update")
     // Update the turn logic here
-    if (data.current_turn === 'player_1') {
-        currentPlayer = player1;
-    } else if (data.current_turn === 'player_2') {
-        currentPlayer = player2;
-    }
+    currentPlayer = data.current_turn === 'player_2' ? player2 : player1;
     enableCellInteractions();
     highlightValidMoves();
     highlightCurrentPlayer();
@@ -960,12 +954,12 @@ function showWarning(...messages) {
     }, 2000);
 }
 
+// Flag to track if the game over event has already been emitted
+let gameOverEmitted = false;
+
+// Handle "Back to Menu" button (no longer emits game over)
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    if (confirm("Are you sure you want to quit the game?")) {
-        const winnerId = playerId === player1.id ? player2.id : player1.id;
-        socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
-        location.replace('menu.html');
-    }
+    location.replace('menu.html');
 });
 
 let gameInitialized = false;  // Flag to track if the game has been initialized
@@ -1025,11 +1019,17 @@ window.onload = () => {
     initializeGame();
 };
 
+// Handle beforeunload (when the user tries to close the tab or navigate away)
 window.addEventListener('beforeunload', function(event) {
-    if (confirm("Are you sure you want to quit the game?")) {
+    if (!gameOverEmitted) { // Only emit if game over hasn't been triggered yet
+        // Prevent the unload and emit the game over event
+        event.preventDefault();
+        event.returnValue = ''; // Some browsers require this to show the confirmation dialog
+        
+        // Determine the winner based on the playerId and emit the game_over event
         const winnerId = playerId === player1.id ? player2.id : player1.id;
         socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
-    } else {
-        event.preventDefault();
+        
+        gameOverEmitted = true; // Mark that the game over event has been emitted
     }
 });

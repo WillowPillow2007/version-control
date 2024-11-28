@@ -1,69 +1,68 @@
-const CACHE_NAME = 'quoridor-cache-v1';
+const CACHE_NAME = `quoridor-cache-v1`;
 const URLS_TO_CACHE = [
     '/',
-    '/index.html',
     '/menu.html',
     '/game.html',
-    '/game-online.html',
-    '/style.css',
-    '/style-online.css',
-    '/script.js',
-    '/script-online.js',
-    '/src/Player.js',
-    '/src/menu.js',
-    '/src/menu.css',
+    '/css/style.css',
+    '/js/script.js',
+    '/js/Player.js',
+    '/js/menu.js',
+    '/css/menu.css',
     '/assets/icon-small.png',
     '/assets/icon-medium.png',
     '/assets/demo-image-1.png',
     '/assets/demo-vid.webm',
     '/assets/wooden-texture.jpg',
-    '/manifest.json'  // Add manifest.json to cache
+    '/manifest.json',
 ];
 
-// Install event: caching resources
+// Install event: cache the resources
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(URLS_TO_CACHE);
-        })
+    caches.open(CACHE_NAME).then((cache) => {
+        return cache.addAll(URLS_TO_CACHE).then(() => {
+        console.log('Cache installed successfully!');
+        });
+    })
     );
 });
 
-// Fetch event: serving cached content when offline
+// Fetch event: serve cached content when offline
 self.addEventListener('fetch', (event) => {
+    console.log(`Fetch event triggered for ${event.request.url}`);
     event.respondWith(
         caches.match(event.request).then((response) => {
-            // If the request is for manifest.json, serve it from the cache if available
-            if (event.request.url.endsWith('manifest.json')) {
-                return response || fetch(event.request); // Use cache first, then fetch if not in cache
+        console.log(`Cached response found for ${event.request.url}: ${response}`);
+        return response || fetch(event.request).catch((error) => {
+            console.error('Error fetching resource:', error);
+            // If the request is for an HTML page, return the cached game page
+            if (event.request.url.endsWith('.html')) {
+            console.log('Falling back to cached game page...');
+            return caches.match('/menu.html');
+            } else {
+            // If the request is for a non-HTML resource, return a cached response or a fallback response
+            return caches.match(event.request).then((response) => {
+                return response || fetch(event.request);
+            });
             }
-            return response || fetch(event.request); // Default: cache first, network fallback
+        });
         })
     );
 });
 
-// Activate event: clean up old caches and clear current cache
+// Activate event: clean up old caches
 self.addEventListener('activate', (event) => {
+    console.log('Activate event triggered!');
     event.waitUntil(
         caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cache) => {
-                    if (cache !== CACHE_NAME) {
-                        return caches.delete(cache);  // Clean up old caches
-                    }
-                })
-            ).then(() => {
-                // Clear current cache
-                return caches.open(CACHE_NAME).then((cache) => {
-                    return cache.keys().then((keys) => {
-                        return Promise.all(
-                            keys.map((key) => {
-                                return cache.delete(key);
-                            })
-                        );
-                    });
-                });
-            });
+        return Promise.all(
+            cacheNames.map((cache) => {
+            if (cache !== CACHE_NAME) {
+                console.log(`Deleting old cache: ${cache}`);
+                return caches.delete(cache);
+            }
+            })
+        );
         })
     );
 });
