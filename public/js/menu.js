@@ -99,7 +99,6 @@ document.addEventListener("DOMContentLoaded", function () {
     
         // Store the game code and session ID for Player 1 (host) in sessionStorage
         sessionStorage.setItem('game_id', gameCode);
-        sessionStorage.setItem('player_id', 'player_1');  // Set the player ID for Player 1 (host)
     
         // Send the game code and state to the server to create a room in the database
         fetch('/api/create-room', {
@@ -178,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
     
     document.getElementById('join-room-button').addEventListener('click', () => {
         const gameCode = document.getElementById('join-room-code').value.toUpperCase();
-        const playerId = 'player_2';  // Assume Player 2 is joining
+        const playerId = 'player_2';
     
         if (gameCode) {
             fetch('/api/join-room', {
@@ -186,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     game_id: gameCode,
-                    player_id: playerId  // Pass Player 2's ID
+                    player_id: playerId  
                 })
             })
             .then(response => response.json())
@@ -235,26 +234,78 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     
-    // Function to handle online status change
+    // Function to handle network and server status
     function updateOnlineStatus() {
         if (navigator.onLine) {
-            localStorage.setItem('onlineStatus', 'online');
-            onlinePlay.disabled = false;
-            onlinePlay.title = "Click to play online (Requires internet)";
-            onlinePlay.style.cursor = 'pointer'; // Change cursor to pointer
+            // If connected to the network, check if the server is available
+            checkServerStatus();
         } else {
-            localStorage.setItem('onlineStatus', 'offline');
-            onlinePlay.disabled = true;
-            onlinePlay.title = "You must be online to play online games.";
-            onlinePlay.style.cursor = 'not-allowed'; // Change cursor to not-allowed
+            // If no network, set offline
+            setOffline();
         }
     }
 
-    updateOnlineStatus()
-    // Event listeners for online/offline status
-    window.addEventListener('online', updateOnlineStatus);
-    window.addEventListener('offline', updateOnlineStatus);
-    // Optional: Show a status indicator on the page
+    // Function to check if the server is online with a timeout
+    function checkServerStatus() {
+        const timeout = 5000; // 5 seconds timeout for the request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        fetch('/healthcheck', { signal: controller.signal }) // Attach the timeout signal
+            .then(response => {
+                clearTimeout(timeoutId); // Clear timeout if request is successful
+                if (response.ok) {
+                    console.log('Server is online');
+                    setOnline();
+                } else {
+                    console.log('Server is offline');
+                    setOffline();
+                }
+            })
+            .catch((err) => {
+                if (err.name === 'AbortError') {
+                    console.log('Server check timeout');
+                } else {
+                    console.log('Server is offline or unreachable');
+                }
+                setOffline();
+            });
+    }
+
+    // Function to handle UI updates when the user is online and the server is reachable
+    function setOnline() {
+        localStorage.setItem('onlineStatus', 'online');
+        onlinePlay.disabled = false;
+        onlinePlay.title = "Click to play online (Requires internet)";
+        onlinePlay.style.cursor = 'pointer';
+
+        updateStatusIndicator(true);
+    }
+
+    // Function to handle UI updates when the user is offline or the server is unavailable
+    function setOffline() {
+        localStorage.setItem('onlineStatus', 'offline');
+        onlinePlay.disabled = true;
+        onlinePlay.title = "You must be online to play online games.";
+        onlinePlay.style.cursor = 'not-allowed';
+        document.querySelector('.online-branch').classList.remove('show');
+
+        updateStatusIndicator(false);
+    }
+
+    // Function to update the status indicator on the page
+    function updateStatusIndicator(isOnline) {
+        const statusIndicator = document.getElementById('status-indicator');
+        if (isOnline) {
+            statusIndicator.textContent = "You are online.";
+            statusIndicator.style.backgroundColor = 'rgba(0, 128, 0, 0.7)'; // Green
+        } else {
+            statusIndicator.textContent = "You are offline.";
+            statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; // Red
+        }
+    }
+
+    // Create and append the status indicator to the page
     const statusIndicator = document.createElement('div');
     statusIndicator.id = 'status-indicator';
     statusIndicator.style.position = 'fixed';
@@ -267,18 +318,13 @@ document.addEventListener("DOMContentLoaded", function () {
     statusIndicator.style.fontSize = '14px';
     document.body.appendChild(statusIndicator);
 
-    function updateStatusIndicator() {
-        if (navigator.onLine) {
-            statusIndicator.textContent = "You are online.";
-            statusIndicator.style.backgroundColor = 'rgba(0, 128, 0, 0.7)'; // Green
-        } else {
-            statusIndicator.textContent = "You are offline.";
-            statusIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)'; // Red
-        }
-    }
+    updateOnlineStatus();
 
-    updateStatusIndicator();
-    window.addEventListener('online', updateStatusIndicator);
-    window.addEventListener('offline', updateStatusIndicator);
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    // Check server status every 5s
+    setInterval(updateOnlineStatus, 5000);
+
 });
 

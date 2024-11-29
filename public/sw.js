@@ -1,4 +1,4 @@
-const CACHE_NAME = `quoridor-cache-v1`;
+const CACHE_NAME = `quoridor-cache-v1.0.0`;
 const URLS_TO_CACHE = [
     '/',
     '/menu.html',

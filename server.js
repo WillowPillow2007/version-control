@@ -41,6 +41,10 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(publicDir, 'menu.html'));
 });
 
+app.get('/healthcheck', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.post('/api/create-room', (req, res) => {
     const { game_id, game_state, player_id } = req.body;
 
@@ -336,7 +340,7 @@ io.on('connection', (socket) => {
             // Emit the player data and occupied walls to the client
             socket.emit('initial-data', { players: playersData, occupiedWalls });
         });
-    });        
+    });
 
     // Listen for player move events
     socket.on('player_move', (data) => {
