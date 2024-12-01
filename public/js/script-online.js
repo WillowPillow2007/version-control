@@ -1024,7 +1024,6 @@ window.addEventListener('beforeunload', function(event) {
     if (!gameOverEmitted) { // Only emit if game over hasn't been triggered yet
         // Prevent the unload and emit the game over event
         event.preventDefault();
-        event.returnValue = ''; // Some browsers require this to show the confirmation dialog
         
         // Determine the winner based on the playerId and emit the game_over event
         const winnerId = playerId === player1.id ? player2.id : player1.id;
