@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Listen for 'redirect_to_game' event from the server (Player 1 should wait until Player 2 joins)
         socket.on('redirect_to_game', (data) => {
             console.log('Received redirect_to_game event');
-            window.location.href = data.url;
+            window.location.replace(data.url);
         });
     });
     

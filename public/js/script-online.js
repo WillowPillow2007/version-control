@@ -162,7 +162,7 @@ socket.on('opponent_move', (data) => {
 });
 
 socket.on('redirect_to_menu', (data) => {
-    window.location.href = data.url;
+    window.location.replace(data.url);
 });
 
 socket.on('opponent_wall', (data) => {
@@ -956,10 +956,10 @@ function showWarning(...messages) {
 
 // Flag to track if the game over event has already been emitted
 let gameOverEmitted = false;
-
-// Handle "Back to Menu" button (no longer emits game over)
+let backButtonClicked = false;
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    location.replace('menu.html');
+    backButtonClicked = true;
+    window.location = 'menu.html';
 });
 
 let gameInitialized = false;  // Flag to track if the game has been initialized
@@ -1019,16 +1019,22 @@ window.onload = () => {
     initializeGame();
 };
 
-// Handle beforeunload (when the user tries to close the tab or navigate away)
 window.addEventListener('beforeunload', function(event) {
     if (!gameOverEmitted) { // Only emit if game over hasn't been triggered yet
-        // Prevent the unload and emit the game over event
         event.preventDefault();
         
-        // Determine the winner based on the playerId and emit the game_over event
-        const winnerId = playerId === player1.id ? player2.id : player1.id;
-        socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
+        // Check if the user confirmed that they want to leave the page
+        if (event.defaultPrevented) {
+            // Determine the winner based on the playerId and emit the game_over event
+            const winnerId = playerId === player1.id ? player2.id : player1.id;
+            socket.emit('game_over', { gameId: currentGameId, winnerId: winnerId });
+            
+            gameOverEmitted = true; // Mark that the game over event has been emitted
+        }
         
-        gameOverEmitted = true; // Mark that the game over event has been emitted
+        // If the back button was clicked, allow navigation to proceed
+        if (backButtonClicked) {
+            window.location = 'menu.html';
+        }
     }
 });
