@@ -259,28 +259,6 @@ async function handleCellClick(event) {
     }
 }
 
-// function updateTimer() {
-//     const player1Timer = document.getElementById('player1-timer');
-//     const player2Timer = document.getElementById('player2-timer');
-//     if (currentPlayer === player1) {
-//         player1TimerValue -= 1;
-//         player1Timer.innerText = `Time: ${formatTime(player1TimerValue)}`;
-//         player1Timer.dataset.time = player1TimerValue;
-//         if (player1TimerValue === 0) {
-//             clearInterval(timerInterval);
-//             // Handle timer expiration
-//         }
-//     } else {
-//         player2TimerValue -= 1;
-//         player2Timer.innerText = `Time: ${formatTime(player2TimerValue)}`;
-//         player2Timer.dataset.time = player2TimerValue;
-//         if (player2TimerValue === 0) {
-//             clearInterval(timerInterval);
-//             // Handle timer expiration
-//         }
-//     }
-// }
-
 function highlightCurrentPlayer() {
     const player1Indicator = document.getElementById('player1-indicator');
     const player2Indicator = document.getElementById('player2-indicator');
@@ -391,7 +369,6 @@ function highlightValidMoves() {
     validMoves.forEach(({ x, y }) => {
         const cellToHighlight = document.getElementById(`cell-${x}-${y}`);
         if (cellToHighlight) {
-            // Only highlight if the cell is not occupied by the opponent
             if (!isOpponentInWay(currentPlayer, x, y)) {
                 const highlightDiv = document.createElement('div');
                 highlightDiv.className = 'highlight';
@@ -617,8 +594,6 @@ function isWallBlocking(x, y, dx, dy) {
 function checkWinCondition(player) {
     const winPosition = player === player1 ? 0 : 8; // Define the winning position
     if (player.position.x === winPosition) {
-        // If player reaches the win position, trigger game over
-
         // Set the gameOver flag on the client side (for UI handling)
         gameOver = true;
 
@@ -646,7 +621,6 @@ function canReachWinPosition(player) {
     const queue = [player.position];
     const winPosition = player === player1 ? 0 : 8;
 
-    // Define direction vectors
     const directions = [
         { dx: 0, dy: 1 },   // Right
         { dx: 0, dy: -1 },  // Left
@@ -675,7 +649,7 @@ function canReachWinPosition(player) {
         }
     }
     
-    return false; // No path found
+    return false;
 }
 
 function initGaps() {
@@ -780,7 +754,6 @@ async function placeWall(event) {
         crossGapsToCheck.push(`gap-cross-${yMin + 1}-${x}`);
     }
 
-    // Check for overlapping walls first
     const occupiedSet = occupiedWalls[gapType];
     const isOverlap = gapsToColor.some(gap => gap && occupiedSet.has(gap.id)) ||
                         crossGapsToCheck.some(crossGapId => 
@@ -931,14 +904,13 @@ function showWarning(...messages) {
     warningBox.innerText = messages.join(' '); // Join messages with a space
 
     // Calculate the top position for the new warning
-    const warningBoxHeight = 60; // Adjust this value for height of the warning box
-    const topPosition = 20 + (currentWarningCount * warningBoxHeight); // Set the position
-
+    const warningBoxHeight = 60;
+    const topPosition = 20 + (currentWarningCount * warningBoxHeight);
     // Set style properties
     warningBox.style.position = 'fixed';
-    warningBox.style.left = '50%'; // Center horizontally
-    warningBox.style.transform = 'translate(-50%, 0)'; // Adjust for centering
-    warningBox.style.top = `${topPosition}px`; // Set top position
+    warningBox.style.left = '50%';
+    warningBox.style.transform = 'translate(-50%, 0)';
+    warningBox.style.top = `${topPosition}px`;
 
     // Increment the warning count
     currentWarningCount++;
@@ -949,8 +921,8 @@ function showWarning(...messages) {
         warningBox.style.opacity = 0; // Start fade-out
         setTimeout(() => {
             document.body.removeChild(warningBox);
-            currentWarningCount--; // Decrement when warning is removed
-        }, 500); // Match with CSS transition duration
+            currentWarningCount--;
+        }, 500);
     }, 2000);
 }
 
@@ -962,12 +934,12 @@ document.getElementById('back-to-menu').addEventListener('click', function() {
     window.location = 'menu.html';
 });
 
-let gameInitialized = false;  // Flag to track if the game has been initialized
+let gameInitialized = false;
 
 async function initializeGame() {
     if (gameInitialized) {
         console.log("Game already initialized. Skipping re-initialization.");
-        return;  // Exit if already initialized
+        return;
     }
 
     try {
@@ -976,7 +948,7 @@ async function initializeGame() {
 
         // Wait for the player data and occupied walls to be received and processed
         await new Promise((resolve, reject) => {
-            socket.once('initial-data', (data) => {  // Use 'once' to ensure it's only triggered once
+            socket.once('initial-data', (data) => {
                 console.log('Received initial data:', data);
 
                 if (data.players && data.players.length === 2) {

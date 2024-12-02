@@ -1,6 +1,6 @@
 import Player from './Player.js';
 
-let gameOver = false; // Add this at the top
+let gameOver = false;
 const player1 = new Player("1", 8, 4, "#f0f");
 const player2 = new Player("2", 0, 4, "#00ff00");
 let currentPlayer = player1; // Start with Player 1
@@ -745,7 +745,7 @@ function showWarning(...messages) {
     document.body.appendChild(warningBox);
 
     setTimeout(() => {
-        warningBox.style.opacity = 0; // Start fade-out
+        warningBox.style.opacity = 0;
         setTimeout(() => {
             document.body.removeChild(warningBox);
             currentWarningCount--; 
@@ -754,7 +754,7 @@ function showWarning(...messages) {
 }
 
 document.getElementById('back-to-menu').addEventListener('click', function() {
-    location.replace('menu.html'); // Replaces game.html in the history stack
+    location.replace('menu.html');
 });
 
 

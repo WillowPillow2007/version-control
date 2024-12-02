@@ -154,25 +154,25 @@ app.post('/api/delete-room', (req, res) => {
 
     // Delete the game from the database if the state is still open
     const query = 'SELECT * FROM Games WHERE game_id = ? AND game_state = "open"';
-        db.get(query, [game_id], (err, row) => {
+    db.get(query, [game_id], (err, row) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Error checking game state.' });
+        }
+
+        if (!row) {
+            return res.status(400).json({ success: false, message: 'Game is no longer open or has already been deleted.' });
+        }
+
+        const deleteQuery = 'DELETE FROM Games WHERE game_id = ?';
+        db.run(deleteQuery, [game_id], function(err) {
             if (err) {
-                return res.status(500).json({ success: false, message: 'Error checking game state.' });
+                return res.status(500).json({ success: false, message: 'Failed to delete the game.' });
             }
 
-            if (!row) {
-                return res.status(400).json({ success: false, message: 'Game is no longer open or has already been deleted.' });
-            }
-
-            const deleteQuery = 'DELETE FROM Games WHERE game_id = ?';
-            db.run(deleteQuery, [game_id], function(err) {
-                if (err) {
-                    return res.status(500).json({ success: false, message: 'Failed to delete the game.' });
-                }
-
-                req.session.game_id = null;
-                res.status(200).json({ success: true, message: 'Game room deleted successfully!' });
-            });
+            req.session.game_id = null;
+            res.status(200).json({ success: true, message: 'Game room deleted successfully!' });
         });
+    });
 });
 
 app.get('/game/:gameId', (req, res) => {

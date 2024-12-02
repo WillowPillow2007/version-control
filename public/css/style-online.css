@@ -312,11 +312,11 @@ h1 {
   }
 }
 
+/* Desktop */
 @media screen and (min-width: 1008px) and (max-width: 1920px) { 
   #back-to-menu {
-    width: calc(150px + (30 * (100vw - 641px) / 366)); 
-    height: calc(40px + (10 * (100vw - 641px) / 366)); 
-    font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
-    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
+    width: calc(150px + (30 * (100vw - 1008px) / 1920)); 
+    height: calc(40px + (10 * (100vw - 1008px) / 1920)); 
+    font-size: calc(20px + (4 * (100vw - 1008px) / 1920));  
   } 
 }

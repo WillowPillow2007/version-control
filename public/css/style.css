@@ -28,7 +28,7 @@ h1 {
 .board {
   display: flex;
   flex-direction: column;
-  background-color: #00bfff; /* Cyan background for the board */
+  background-color: #00bfff;
 }
 
 .row {
@@ -52,16 +52,16 @@ h1 {
 
 
 .gap {
-  background-color: #555; /* Darker gap color */
+  background-color: #555;
 }
 
 .gap.vertical {
   width: 8px;
-  height: 60px; /* Matches the effective height of each cell */
+  height: 60px;
 }
 
 .gap.horizontal {
-  width: 60px; /* Matches the effective width of each cell */
+  width: 60px;
   height: 8px;
 }
 
@@ -71,7 +71,7 @@ h1 {
 }
 
 .gap.wall-placed {
-  background-color: #ff0000; /* Red color for the wall */
+  background-color: #ff0000;
 }
 
 .player-marker {
@@ -87,23 +87,23 @@ h1 {
 }
 
 #marker1 {
-  box-shadow: 0 0 15px #ff8cff, 0 0 30px #ff8cff; /* Brighter neon pink glow effect for Player 1 */
+  box-shadow: 0 0 15px #ff8cff, 0 0 30px #ff8cff;
 }
 
 #marker2 {
-  box-shadow: 0 0 15px #66ff66, 0 0 30px #66ff66; /* Brighter neon green glow effect for Player 2 */
+  box-shadow: 0 0 15px #66ff66, 0 0 30px #66ff66;
 }
 
 .highlight {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%; /* Full cell size */
-  height: 100%; /* Full cell size */
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 255, 0.3); /* Semi-transparent blue */
   border-radius: 50%;
-  filter: blur(8px); /* Blur effect */
-  pointer-events: none; /* Ensure it doesn't block clicks */
+  filter: blur(8px);
+  pointer-events: none;
   z-index: 1; 
 }
 
@@ -336,11 +336,11 @@ h1 {
   }
 }
 
+/* Desktop */
 @media screen and (min-width: 1008px) and (max-width: 1920px) { 
   #back-to-menu {
-    width: calc(150px + (30 * (100vw - 641px) / 366)); 
-    height: calc(40px + (10 * (100vw - 641px) / 366)); 
-    font-size: calc(20px + (4 * (100vw - 641px) / 366)); 
-    top: calc(5vh - (calc(30px + (10 * (100vw - 641px) / 366)) / 2)); 
+    width: calc(150px + (30 * (100vw - 1008px) / 1920)); 
+    height: calc(40px + (10 * (100vw - 1008px) / 1920)); 
+    font-size: calc(20px + (4 * (100vw - 1008px) / 1920));  
   } 
 }
